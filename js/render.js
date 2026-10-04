@@ -56,7 +56,8 @@ export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5));
     r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x030208);

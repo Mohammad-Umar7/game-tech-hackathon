@@ -252,8 +252,6 @@ export class Game {
       this.eb.length = 0;
       if (this.purgeT > 1.6 && !this.drones.length) this.state = 'cleared';
     }
-    this.slowmo = Math.max(0, this.slowmo - dt);
-    this.hitstop = Math.max(0, this.hitstop - dt);
     this.confusedT = Math.max(0, (this.confusedT || 0) - dt);
   }
 

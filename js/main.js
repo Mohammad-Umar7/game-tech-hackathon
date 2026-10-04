@@ -69,13 +69,20 @@ addEventListener('mouseup', e => { if (e.button === 0) mouse.down = false; });
 addEventListener('contextmenu', e => e.preventDefault());
 addEventListener('blur', () => { keys.clear(); mouse.down = false; if (state === 'play' && !paused) togglePause(); });
 
+const onUI = t => t.target && t.target.closest && t.target.closest('button, input, a, .overlay:not(.hidden)');
 addEventListener('touchstart', e => {
+  let mine = false;
   for (const t of e.changedTouches) {
-    if (t.target.closest && t.target.closest('button')) continue;
+    if (onUI(t)) continue;
+    mine = true;
     if (state === 'play' && !stick && t.clientX < innerWidth * 0.65) stick = { id: t.identifier, ox: t.clientX, oy: t.clientY, x: t.clientX, y: t.clientY };
   }
-}, { passive: true });
-addEventListener('touchmove', e => { for (const t of e.changedTouches) if (stick && t.identifier === stick.id) { stick.x = t.clientX; stick.y = t.clientY; } }, { passive: true });
+  if (mine && state === 'play' && e.cancelable) e.preventDefault(); // no scroll / zoom / pull-to-refresh hijacking the stick
+}, { passive: false });
+addEventListener('touchmove', e => {
+  for (const t of e.changedTouches) if (stick && t.identifier === stick.id) { stick.x = t.clientX; stick.y = t.clientY; }
+  if (state === 'play' && e.cancelable) e.preventDefault();
+}, { passive: false });
 const endTouch = e => { for (const t of e.changedTouches) if (stick && t.identifier === stick.id) stick = null; };
 addEventListener('touchend', endTouch); addEventListener('touchcancel', endTouch);
 const tap = (id, fn) => $(id).addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); fn(); }, { passive: false });
@@ -84,9 +91,10 @@ tap('tdash', () => (input.dash = true)); tap('tnova', () => (input.nova = true))
 function readTouch() {
   const el = $('stick');
   if (stick) {
-    let dx = stick.x - stick.ox, dy = stick.y - stick.oy; const l = Math.hypot(dx, dy);
-    if (l > 55) { stick.ox = stick.x - dx / l * 55; stick.oy = stick.y - dy / l * 55; dx = stick.x - stick.ox; dy = stick.y - stick.oy; }
-    const m = l < 8 ? 0 : Math.min(1, l / 55);
+    const R_STICK = 64, DEAD = 6;
+    let dx = stick.x - stick.ox, dy = stick.y - stick.oy; let l = Math.hypot(dx, dy);
+    if (l > R_STICK) { stick.ox = stick.x - dx / l * R_STICK; stick.oy = stick.y - dy / l * R_STICK; dx = stick.x - stick.ox; dy = stick.y - stick.oy; l = R_STICK; }
+    const m = l < DEAD ? 0 : Math.min(1, (l - DEAD) / (R_STICK * 0.6 - DEAD)); // full speed at 60% throw = snappy
     // screen direction -> world direction (works for any camera orientation)
     const cx = innerWidth / 2, cy = innerHeight / 2, a = R.screenToWorld(cx, cy), b = l ? R.screenToWorld(cx + dx / l * 80, cy + dy / l * 80) : null;
     if (a && b) { const wx = b.x - a.x, wy = b.y - a.y, wl = Math.hypot(wx, wy) || 1; input.mx = wx / wl * m; input.my = wy / wl * m; }
@@ -287,6 +295,8 @@ function frame(now) {
   else if (game.hitstop > 0) scale = 0.08;
   else if (game.slowmo > 0) scale = 0.3;
   const dt = real * scale;
+  // slow-mo / hit-pause last REAL seconds, so controls never feel sticky
+  game.slowmo = Math.max(0, game.slowmo - real); game.hitstop = Math.max(0, game.hitstop - real);
 
   if (AUTO) autodemo(real);
   else if (BOT) { // spectator mode: the AI pilot plays forever, the hunters keep learning its style
