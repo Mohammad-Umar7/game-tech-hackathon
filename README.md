@@ -6,7 +6,7 @@ Runs in any modern browser, no install, no login, no API keys. Also works on pho
 
 [![OVERFIT — Shadow wave](docs/teaser.gif)](https://mohammad-umar7.github.io/game-tech-hackathon/docs/overfit-demo.mp4)
 
-*↑ the SHADOW.EXE boss fight. Click for the full 80-second trailer (with sound).*
+*↑ the SHADOW.EXE boss fight. Click for the full 90-second trailer (with sound).*
 
 OVERFIT is a neon arena shooter where the enemies **train themselves against a clone of you**.
 
@@ -25,6 +25,7 @@ The only way to win is to **stop being predictable**. Playing in ways the model 
 | ![gameplay](docs/gameplay.jpg) | **1 · YOU FIGHT.** A 3D neon arena with bloom, colour-split, a spring grid that warps under every blast, 3D sparks bouncing off the floor, slow-motion and a soundtrack generated live. Each enemy hunter is a **neural network**, and its look (colour, number of spikes) comes from its genes, so you can *see* evolution happen. |
 | ![lab](docs/lab.jpg) | **2 · IT LEARNS YOU.** The **Neural Lab** shows your behavioural fingerprint, then trains the hunters live against your shadow: about **2,900 simulated fights per wave**, shown with a fitness graph, a mini replay and a gene pool you can watch converge. Afterwards, test fights measure what changed in plain English: *"Shots on target vs your shadow 12% → 40% (3.3×)"*, *"Shot leading 1.49 → 0.00 — you juke too much to lead"*. |
 | ![brain](docs/brain.jpg) | **3 · LOOK INSIDE ITS HEAD.** Press **B** for a **live neural scan**: time slows to 10% and you watch a hunter's network fire in real time. Inputs (*your aim*, *bullet threat*, *range*…) flow to outputs (*charge*, *strafe*, *fire*, *lead*, *dash*). |
+| ![game over](docs/gameover.jpg) | **4 · YOU GET OVERFIT.** When you die, every wave's champion is re-tested against your *final* model, giving an honest learning curve (here 14% → 41% → 45% shots on target). It also tells you the habit that gave you away, and gives you a link that sends your evolved hunters to a friend. |
 
 ---
 
