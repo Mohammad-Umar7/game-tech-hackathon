@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OVERFIT — the arena learns you</title>
+  <meta name="description" content="A neon arena shooter whose enemies evolve neural networks against a clone of YOU — trained live in your browser.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+  { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  } }
+  </script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="hud-tl"><div id="score">0</div><div id="mult">×1</div></div>
+    <div class="hud-tc"><div id="wave">WAVE 1</div><div id="gen">AI GEN 0</div></div>
+    <div class="hud-tr"><div id="hp"></div><div id="novas"></div></div>
+    <div class="hud-bl" id="ood">
+      <div class="lbl">MODEL DRIFT <em>— play unlike yourself for bonus score</em></div>
+      <div class="bar"><div id="oodbar"></div></div>
+      <div id="oodtxt">PREDICTABLE</div>
+    </div>
+    <div class="hud-br"><kbd>B</kbd> BRAIN SCAN &nbsp; <kbd>E</kbd> NOVA &nbsp; <kbd>SHIFT</kbd> DASH &nbsp; <kbd>P</kbd> PAUSE</div>
+    <div id="bossbar" class="hidden"><span>SHADOW.EXE — YOUR CLONE</span><div><i id="bossfill"></i></div></div>
+  </div>
+  <div id="popups"></div>
+  <div id="banner"><h1 data-text=""></h1><p></p></div>
+
+  <!-- Title -->
+  <div id="title" class="overlay">
+    <div class="title-inner">
+      <div class="kicker">TENCENT × ARCADE AI HACKATHON · GAME TECH TRACK</div>
+      <h1 class="logo" data-text="OVERFIT">OVERFIT</h1>
+      <div class="tagline">the arena is learning <span>you</span>.</div>
+      <button id="play" class="btn big">▶ PLAY <small>ENTER</small></button>
+      <div class="how">
+        <div><b>01 · IT WATCHES</b>Every move you make is recorded and fitted into a behavioural model — your <i>shadow</i>.</div>
+        <div><b>02 · IT EVOLVES</b>Between waves, neural-net hunters fight <i>thousands</i> of simulated duels against your shadow, right here in your browser.</div>
+        <div><b>03 · IT HUNTS</b>The survivors come for you. Every 3rd wave, your shadow itself joins the fight.</div>
+      </div>
+      <div class="controls"><kbd>WASD</kbd> move · <kbd>MOUSE</kbd> aim · <kbd>CLICK</kbd>/<kbd>SPACE</kbd> fire · <kbd>SHIFT</kbd>/<kbd>RMB</kbd> dash · <kbd>E</kbd> nova · <kbd>B</kbd> brain scan · <kbd>M</kbd> mute</div>
+      <div class="foot">no servers · no API keys · neural networks + a genetic algorithm evolving live in your browser</div>
+    </div>
+  </div>
+
+  <!-- Neural Lab -->
+  <div id="lab" class="overlay hidden">
+    <div class="lab-head">
+      <div class="tag">◢ NEURAL LAB</div>
+      <h2 id="labtitle">ANALYZING YOU</h2>
+      <div id="labsub"></div>
+    </div>
+    <div class="lab-grid">
+      <section class="panel">
+        <h3>01 · YOUR BEHAVIOURAL FINGERPRINT</h3>
+        <canvas id="radar" width="360" height="300"></canvas>
+        <ul id="insights"></ul>
+      </section>
+      <section class="panel mid">
+        <h3>02 · TRAINING HUNTERS VS YOUR SHADOW <span class="live">● LIVE</span></h3>
+        <canvas id="arena" width="520" height="292"></canvas>
+        <div class="progress"><i id="lbar"></i></div>
+        <div class="stats">
+          <div><b id="lgen">0</b><span>GENERATION</span></div>
+          <div><b id="lduels">0</b><span>DUELS SIMULATED</span></div>
+          <div><b id="lfit">0</b><span>BEST FITNESS</span></div>
+        </div>
+        <canvas id="fitness" width="520" height="96"></canvas>
+      </section>
+      <section class="panel">
+        <h3>03 · WHAT THEY LEARNED</h3>
+        <ul id="learned"></ul>
+        <div id="champ"></div>
+      </section>
+    </div>
+    <button id="deploy" class="btn" disabled>TRAINING…</button>
+  </div>
+
+  <!-- Brain scan -->
+  <div id="brain" class="hidden">
+    <div class="bh">◢ LIVE NEURAL SCAN <span>time ×0.1 · aim at a hunter · [B] exit</span></div>
+    <canvas id="brainc" width="460" height="330"></canvas>
+    <div id="braininfo"></div>
+  </div>
+
+  <!-- Boss intro -->
+  <div id="bossintro" class="hidden">
+    <div class="bi-title" data-text="SHADOW.EXE">SHADOW.EXE</div>
+    <div class="bi-sub"></div>
+    <div class="bi-fp"></div>
+  </div>
+
+  <!-- Game over -->
+  <div id="over" class="overlay hidden">
+    <div class="over-inner">
+      <div class="kicker">MODEL CONVERGED</div>
+      <h1 class="logo small" data-text="YOU WERE OVERFIT">YOU WERE OVERFIT</h1>
+      <div id="ostats"></div>
+      <div id="ohabit"></div>
+      <button id="retry" class="btn big">↻ RETRY <small>ENTER</small></button>
+    </div>
+  </div>
+  <div id="pause" class="overlay hidden"><div class="over-inner"><h1 class="logo small" data-text="PAUSED">PAUSED</h1><button id="resume" class="btn">RESUME</button></div></div>
+
+  <div id="loading">BOOTING NEURAL ARENA…</div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
