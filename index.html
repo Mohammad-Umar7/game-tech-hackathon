@@ -42,6 +42,7 @@
       <h1 class="logo" data-text="OVERFIT">OVERFIT</h1>
       <div class="tagline">the arena is learning <span>you</span>.</div>
       <button id="play" class="btn big">▶ PLAY <small>ENTER</small></button>
+      <div class="touchnote">touch mode: drag left side to move · auto-aim + auto-fire · buttons for dash / nova / scan</div>
       <div class="how">
         <div><b>01 · IT WATCHES</b>Every move you make is recorded and fitted into a behavioural model — your <i>shadow</i>.</div>
         <div><b>02 · IT EVOLVES</b>Between waves, neural-net hunters fight <i>thousands</i> of simulated duels against your shadow, right here in your browser.</div>
@@ -80,6 +81,7 @@
         <h3>03 · WHAT THEY LEARNED</h3>
         <ul id="learned"></ul>
         <div id="champ"></div>
+        <button id="export" class="btn mini hidden">⤓ EXPORT CHAMPION BRAIN .json</button>
       </section>
     </div>
     <button id="deploy" class="btn" disabled>TRAINING…</button>
@@ -110,6 +112,12 @@
     </div>
   </div>
   <div id="pause" class="overlay hidden"><div class="over-inner"><h1 class="logo small" data-text="PAUSED">PAUSED</h1><button id="resume" class="btn">RESUME</button></div></div>
+
+  <!-- Touch controls -->
+  <div id="touch" class="hidden">
+    <div id="stick"><i></i></div>
+    <div class="tbtns"><button id="tscan">SCAN</button><button id="tnova">NOVA</button><button id="tdash">DASH</button></div>
+  </div>
 
   <div id="loading">BOOTING NEURAL ARENA…</div>
   <script type="module" src="js/main.js"></script>

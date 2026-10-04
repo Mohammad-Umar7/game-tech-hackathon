@@ -226,7 +226,17 @@ export class Game {
       const ne = this.nearestEnemy(p.x, p.y);
       this.rec.frame(p, ne, p.cmd.fire, dt);
       this.ood = this.drift.update(p, ne, this.model, dt);
+      this.oodCD = (this.oodCD || 0) - dt;
+      if (this.ood > 0.68 && !this.oodFlag && this.oodCD <= 0 && this.state === 'wave') {
+        this.oodFlag = true; this.oodCD = 12;
+        this.ui.banner('OUT OF DISTRIBUTION', "they can't predict you — score boosted", 'clear');
+        this.audio.glitch(); R.kick(0.5); R.grid.pulse = 1;
+        for (const h of this.hunters) if (h.spawnT <= 0) this.ui.popup(h.x, h.y, '???', 'nova');
+      }
+      if (this.ood < 0.4) this.oodFlag = false;
     }
+    if (this.mult > (this.lastMult || 1) && !this.demo && p.alive) this.ui.popup(p.x, p.y - 40, `MULTIPLIER ×${this.mult}`, 'big');
+    this.lastMult = this.mult;
     // --- wave clear / purge ---
     if (this.state === 'wave' && !this.spawnQ.length && !this.hunters.length && !this.shadow) {
       this.state = 'purge'; this.purgeT = 0;

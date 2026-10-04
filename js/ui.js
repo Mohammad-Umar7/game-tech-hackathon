@@ -134,10 +134,16 @@ export class UI {
   }
 
   // ---------------- live neural scan ----------------
-  brain(canvas, h) {
+  brain(canvas, h, model, shadow) {
     const c = canvas.getContext('2d'), w = canvas.width, hh = canvas.height;
     c.clearRect(0, 0, w, hh);
-    if (!h) return;
+    if (!h) {
+      if (shadow) {
+        this.radar(canvas, model, null, 1);
+        $('braininfo').innerHTML = `<b style="color:#ff2a4a">SHADOW.EXE</b> has no neural net — it runs the <b>behavioural model fitted to YOU</b>: holds ${Math.round(model.prefDist)}px, circles ${model.orbitDir > 0 ? 'counter-clockwise' : 'clockwise'}, jukes ${model.jukeRate.toFixed(1)}×/s. Do the opposite.`;
+      } else $('braininfo').textContent = 'no hunter on the field — wait for the next warp-in';
+      return;
+    }
     const br = h.brain, g = br.g;
     const col = [92, w / 2 + 6, w - 92];
     const ys = (n, i) => 16 + (i + 0.5) * ((hh - 24) / n);

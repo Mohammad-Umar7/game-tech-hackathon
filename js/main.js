@@ -50,12 +50,45 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-addEventListener('mousedown', e => { if (e.target.closest('button')) return; if (e.button === 0) mouse.down = true; if (e.button === 2) input.dash = true; });
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+if (TOUCH) document.body.classList.add('touch');
+let stick = null;
+addEventListener('mousedown', e => { if (TOUCH || e.target.closest('button')) return; if (e.button === 0) mouse.down = true; if (e.button === 2) input.dash = true; });
 addEventListener('mouseup', e => { if (e.button === 0) mouse.down = false; });
 addEventListener('contextmenu', e => e.preventDefault());
 addEventListener('blur', () => { keys.clear(); mouse.down = false; if (state === 'play' && !paused) togglePause(); });
 
+addEventListener('touchstart', e => {
+  for (const t of e.changedTouches) {
+    if (t.target.closest && t.target.closest('button')) continue;
+    if (state === 'play' && !stick && t.clientX < innerWidth * 0.65) stick = { id: t.identifier, ox: t.clientX, oy: t.clientY, x: t.clientX, y: t.clientY };
+  }
+}, { passive: true });
+addEventListener('touchmove', e => { for (const t of e.changedTouches) if (stick && t.identifier === stick.id) { stick.x = t.clientX; stick.y = t.clientY; } }, { passive: true });
+const endTouch = e => { for (const t of e.changedTouches) if (stick && t.identifier === stick.id) stick = null; };
+addEventListener('touchend', endTouch); addEventListener('touchcancel', endTouch);
+const tap = (id, fn) => $(id).addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); fn(); }, { passive: false });
+tap('tdash', () => (input.dash = true)); tap('tnova', () => (input.nova = true)); tap('tscan', () => state === 'play' && toggleScan());
+
+function readTouch() {
+  const el = $('stick');
+  if (stick) {
+    let dx = stick.x - stick.ox, dy = stick.y - stick.oy; const l = Math.hypot(dx, dy);
+    if (l > 55) { stick.ox = stick.x - dx / l * 55; stick.oy = stick.y - dy / l * 55; dx = stick.x - stick.ox; dy = stick.y - stick.oy; }
+    const m = l < 8 ? 0 : Math.min(1, l / 55);
+    // screen direction -> world direction (works for any camera orientation)
+    const cx = innerWidth / 2, cy = innerHeight / 2, a = R.screenToWorld(cx, cy), b = l ? R.screenToWorld(cx + dx / l * 80, cy + dy / l * 80) : null;
+    if (a && b) { const wx = b.x - a.x, wy = b.y - a.y, wl = Math.hypot(wx, wy) || 1; input.mx = wx / wl * m; input.my = wy / wl * m; }
+    else { input.mx = 0; input.my = 0; }
+    el.style.display = 'block'; el.style.left = stick.ox + 'px'; el.style.top = stick.oy + 'px';
+    el.firstElementChild.style.transform = `translate(${dx}px, ${dy}px)`;
+  } else { input.mx = input.my = 0; el.style.display = 'none'; }
+  const p = game.player, t = game.nearestEnemy(p.x, p.y);
+  if (t) { input.wx = t.x + (t.vx || 0) * 0.12; input.wy = t.y + (t.vy || 0) * 0.12; input.fire = true; } else input.fire = false;
+}
+
 function readInput() {
+  if (TOUCH) return readTouch();
   let x = 0, y = 0;
   if (keys.has('a') || keys.has('arrowleft')) x--;
   if (keys.has('d') || keys.has('arrowright')) x++;
@@ -73,12 +106,24 @@ $('play').onclick = () => startRun();
 $('retry').onclick = () => startRun();
 $('deploy').onclick = () => deploy();
 $('resume').onclick = () => togglePause();
+$('export').onclick = () => {
+  const ch = pop.champion;
+  const data = { format: 'overfit-hunter-brain/v1', topology: { inputs: 13, hidden: 12, outputs: 7, activation: 'tanh' },
+    inputs: ['range', 'target_v_radial', 'target_v_tangential', 'self_v_radial', 'self_v_tangential', 'target_aim_alignment', 'bullet_threat', 'dodge_side', 'ally_radial', 'ally_tangential', 'hull', 'memory', 'wall'],
+    outputs: ['charge', 'strafe', 'fire', 'lead', 'spread', 'dash', 'memory'],
+    generation: pop.generation, champion: ch.id, lineage: ch.lineage, fitness: pop.history.at(-1)?.best ?? null,
+    trainedAgainst: game.model, duelsSimulated: trainer.totalDuels, genes: Array.from(ch.genes, v => +v.toFixed(5)) };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+  a.download = `overfit-hunter-gen${pop.generation}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
 
 function startRun() {
   audio.init(); audio.startMusic();
   if (state === 'over') freshAI();
   else { game.model = { ...DEFAULT_MODEL }; }
-  ui.show('title', false); ui.show('over', false); ui.show('lab', false); ui.show('hud', true);
+  ui.show('title', false); ui.show('over', false); ui.show('lab', false); ui.show('hud', true); ui.show('touch', TOUCH);
   game.reset(false);
   game.autopilot = BOT;
   game.rec.reset();
@@ -92,6 +137,7 @@ function toggleScan() { scan = !scan; ui.show('brain', scan); document.body.clas
 // ---------------- the Neural Lab ----------------
 let lab = null;
 function enterLab() {
+  ui.show('touch', false); stick = null;
   state = 'lab'; scan = false; ui.show('brain', false); document.body.classList.remove('scanning');
   const prev = game.model;
   const model = game.model = game.rec.fit(prev);
@@ -105,6 +151,7 @@ function enterLab() {
   $('insights').innerHTML = insights(model).map((s, i) => `<li style="animation-delay:${0.3 + i * 0.25}s">${s}</li>`).join('');
   $('learned').innerHTML = '<li class="wait">waiting for evolution to finish…</li>';
   $('champ').innerHTML = '';
+  ui.show('export', false);
   $('deploy').disabled = true; $('deploy').textContent = 'TRAINING…';
   game.player.hp = Math.min(game.player.maxHp, game.player.hp + 1);
   audio.glitch();
@@ -140,18 +187,19 @@ function updateLab(dt) {
     const ph = pop.champion.pheno;
     $('champ').innerHTML = `<span style="color:hsl(${ph.hue},100%,65%)">◆ CHAMPION #${pop.champion.id}</span> · gen ${pop.generation} · fitness ${Math.round(pop.champion.fitness || last?.best || 0)}`;
     $('deploy').disabled = false; $('deploy').textContent = `DEPLOY WAVE ${game.wave + 1} ▶`;
+    ui.show('export', true);
     audio.wave();
   }
 }
 function deploy() {
-  ui.show('lab', false); ui.show('hud', true);
+  ui.show('lab', false); ui.show('hud', true); ui.show('touch', TOUCH);
   game.pb.length = 0; game.eb.length = 0;
   state = 'play';
   game.startWave(game.wave + 1);
 }
 
 function gameOver() {
-  state = 'over'; ui.show('hud', false); ui.show('brain', false); scan = false;
+  state = 'over'; ui.show('hud', false); ui.show('touch', false); stick = null; ui.show('brain', false); scan = false;
   let best = 0;
   try { best = +localStorage.getItem('overfit-best') || 0; if (game.score > best) localStorage.setItem('overfit-best', String(game.score)); } catch (e) { /* storage blocked */ }
   const m = game.rec.fit(game.model);
@@ -187,7 +235,7 @@ function frame(now) {
     if (scan) {
       let best = null, bd = 1e18;
       for (const h of game.hunters) { const d = (h.x - input.wx) ** 2 + (h.y - input.wy) ** 2; if (d < bd && h.spawnT <= 0) { bd = d; best = h; } }
-      game.scan = best; ui.brain($('brainc'), best);
+      game.scan = best; ui.brain($('brainc'), best, game.model, !!game.shadow);
     }
     ui.hud(game, pop, trainer);
     audio.updateMusic(Math.min(1, 0.3 + game.wave * 0.12 + game.hunters.length * 0.04 + (game.shadow ? 0.4 : 0)));

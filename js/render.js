@@ -212,9 +212,12 @@ export class Renderer {
     this.camera.aspect = w / h;
     const vf = THREE.MathUtils.degToRad(this.camera.fov / 2);
     const hf = Math.atan(Math.tan(vf) * this.camera.aspect);
-    const dist = Math.max((W / 2 + 70) / Math.tan(hf), (H / 2 + 120) / Math.tan(vf) * 1.02) * 1.0;
+    this.portrait = h > w * 1.05;
+    const along = this.portrait ? H : W, across = this.portrait ? W : H;
+    const dist = Math.max((along / 2 + 70) / Math.tan(hf), (across / 2 + 120) / Math.tan(vf) * 1.02) * 1.0;
     const el = THREE.MathUtils.degToRad(58);
-    this.camBase.set(0, Math.sin(el) * dist, Math.cos(el) * dist + 40);
+    if (this.portrait) { this.camBase.set(Math.cos(el) * dist + 40, Math.sin(el) * dist, 0); this.look.set(30, 0, 0); }
+    else { this.camBase.set(0, Math.sin(el) * dist, Math.cos(el) * dist + 40); this.look.set(0, 0, 30); }
     this.camera.updateProjectionMatrix();
     this.fx.points.material.uniforms.uScale.value = h * 0.9;
   }
@@ -254,6 +257,7 @@ export class Renderer {
       this.camBase.x + this.focus.x + Math.sin(t * 47) * 26 * s,
       this.camBase.y + Math.sin(t * 39) * 18 * s,
       this.camBase.z + this.focus.z + Math.cos(t * 43) * 22 * s);
+    this.camera.up.set(0, 1, 0);
     this.camera.lookAt(this.look.x + this.focus.x, 0, this.look.z + this.focus.z);
     this.camera.rotation.z += Math.sin(t * 31) * 0.02 * s;
     this.stars.rotation.y += dt * 0.006;
