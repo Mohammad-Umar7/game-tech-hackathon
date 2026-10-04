@@ -8,7 +8,7 @@ export class Audio {
     const ctx = this.ctx = new C();
     this.master = ctx.createGain(); this.master.gain.value = 0.55;
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 6;
-    this.master.connect(comp); comp.connect(ctx.destination);
+    this.master.connect(comp); comp.connect(ctx.destination); this.comp = comp;
     this.sfx = ctx.createGain(); this.sfx.gain.value = 0.9; this.sfx.connect(this.master);
     this.music = ctx.createGain(); this.music.gain.value = 0.32; this.music.connect(this.master);
     this.musicLP = ctx.createBiquadFilter(); this.musicLP.type = 'lowpass'; this.musicLP.frequency.value = 900; this.musicLP.connect(this.music);
@@ -17,6 +17,28 @@ export class Audio {
     this.noise = buf;
     this.step = 0; this.nextT = ctx.currentTime + 0.1; this.playing = false;
     this.last = {};
+  }
+  // capture the mix (used by the trailer recorder)
+  recordStart() {
+    if (!this.ctx || this.rec) return;
+    const dest = this.ctx.createMediaStreamDestination();
+    this.comp.connect(dest);
+    this.chunks = [];
+    this.rec = new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 160000 });
+    this.rec.ondataavailable = e => e.data.size && this.chunks.push(e.data);
+    this.rec.start(250);
+    return Date.now() / 1000;
+  }
+  recordStop() {
+    return new Promise(res => {
+      if (!this.rec) return res(null);
+      this.rec.onstop = async () => {
+        const buf = new Uint8Array(await new Blob(this.chunks, { type: 'audio/webm' }).arrayBuffer());
+        let s = ''; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+        res(btoa(s));
+      };
+      this.rec.stop();
+    });
   }
   toggleMute() { this.muted = !this.muted; if (this.master) this.master.gain.value = this.muted ? 0 : 0.55; return this.muted; }
   _rate(name, ms) { const n = performance.now(); if (this.last[name] && n - this.last[name] < ms) return false; this.last[name] = n; return true; }

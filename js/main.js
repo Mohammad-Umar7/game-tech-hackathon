@@ -34,7 +34,7 @@ if (incoming) {
 
 const AUTO = new URLSearchParams(location.search).has('autodemo');
 const BOT = AUTO || new URLSearchParams(location.search).has('bot');
-if (AUTO) document.body.classList.add('autodemo');
+if (AUTO) { document.body.classList.add('autodemo'); R.post.uniforms.uGrain.value = 0; }
 let state = 'title', paused = false, scan = false, demoWave = 1;
 game.reset(true); game.startWave(1);
 
@@ -247,7 +247,7 @@ function autodemo(real) {
   ad.t += real;
   const since = ad.t - ad.t0, next = () => { ad.step++; ad.t0 = ad.t; };
   switch (ad.step) {
-    case 0: if (since > 4.5) { startRun(); caption('Every enemy is a <b>neural network</b>. Every move you make is being <b>recorded</b>.'); next(); } break;
+    case 0: if (since > 4.5) { startRun(); window.__audioStart = audio.recordStart(); caption('Every enemy is a <b>neural network</b>. Every move you make is being <b>recorded</b>.'); next(); } break;
     case 1: if (since > 6 && game.hunters.some(h => h.spawnT <= 0)) { toggleScan(); caption('<b>Brain scan</b>: watch a hunter’s network fire in real time — inputs → decisions'); next(); } break;
     case 2: if (since > 4.2) { toggleScan(); caption(''); next(); } break;
     case 3: if (state === 'lab') { caption('Between waves it fits a <b>behavioural model of you</b>: range, orbit, jukes, aim…'); next(); } break;
@@ -262,15 +262,17 @@ function autodemo(real) {
       if (since > 6 && !game.shadow && game.state !== 'wave') { caption('Beat it by being <b>unpredictable</b> — go out-of-distribution for bonus score'); next(); }
       break;
     case 10: if (since > 4) { caption(''); ui.show('endcard', true); ui.show('hud', false); ui.show('lab', false); next(); } break;
-    case 11: if (since > 6) { window.__demoDone = true; next(); } break;
+    case 11: if (since > 6) { next(); audio.recordStop().then(b => { window.__audioB64 = b; window.__demoDone = true; }); } break;
   }
 }
 
 // ---------------- main loop ----------------
-let last = performance.now(), overT = 0;
+let last = performance.now(), overT = 0, perf = { acc: 0, n: 0 };
 function frame(now) {
   requestAnimationFrame(frame);
   const real = Math.min(0.05, (now - last) / 1000); last = now;
+  perf.acc += real; perf.n++;
+  if (perf.n >= 120) { if (perf.acc / perf.n > 0.036 && !document.hidden) R.lowerQuality(); perf.acc = 0; perf.n = 0; }
   let scale = 1;
   if (state === 'play' && paused) scale = 0;
   else if (scan) scale = 0.1;

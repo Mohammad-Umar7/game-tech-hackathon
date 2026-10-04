@@ -13,9 +13,9 @@ export const hdr = (r, g, b) => new THREE.Color(r, g, b);
 export const hsl = (h, s, l, k = 1) => { const c = new THREE.Color().setHSL(h / 360, s, l); return c.multiplyScalar(k); };
 
 const PostShader = {
-  uniforms: { tDiffuse: { value: null }, uAberr: { value: 0 }, uDamage: { value: 0 }, uTime: { value: 0 }, uWarp: { value: 0 } },
+  uniforms: { tDiffuse: { value: null }, uAberr: { value: 0 }, uDamage: { value: 0 }, uTime: { value: 0 }, uWarp: { value: 0 }, uGrain: { value: 1 } },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uAberr, uDamage, uTime, uWarp; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uAberr, uDamage, uTime, uWarp, uGrain; varying vec2 vUv;
     float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
     void main(){
       vec2 uv = vUv; vec2 c = uv - 0.5; float d = length(c);
@@ -26,8 +26,8 @@ const PostShader = {
       vec3 col = vec3(texture2D(tDiffuse, uv + off).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, uv - off).b);
       col *= 1.0 - smoothstep(0.42, 0.95, d) * 0.7;
       col += vec3(1.0, 0.04, 0.12) * uDamage * smoothstep(0.2, 0.8, d) * 0.9;
-      col *= 0.965 + 0.035 * sin(vUv.y * 1100.0 + uTime * 8.0);
-      col += (hash(vUv * 900.0 + uTime) - 0.5) * 0.025;
+      col *= 0.965 + 0.035 * sin(vUv.y * 1100.0 + uTime * 8.0 * uGrain);
+      col += (hash(vUv * 900.0 + uTime) - 0.5) * 0.025 * uGrain;
       gl_FragColor = vec4(col, 1.0);
     }`,
 };
@@ -226,6 +226,14 @@ export class Renderer {
     else { this.camBase.set(0, Math.sin(el) * dist, Math.cos(el) * dist + 40); this.look.set(0, 0, 30); }
     this.camera.updateProjectionMatrix();
     this.fx.points.material.uniforms.uScale.value = h * 0.9;
+  }
+  // drop resolution if the machine can't keep up
+  lowerQuality() {
+    const pr = this.renderer.getPixelRatio();
+    if (pr <= 0.6) return false;
+    const next = Math.max(0.6, pr * 0.75);
+    this.renderer.setPixelRatio(next); this.composer.setPixelRatio(next); this.resize();
+    return true;
   }
   shake(t) { this.trauma = Math.min(1, this.trauma + t); }
   kick(a) { this.aberr = Math.min(1, this.aberr + a); }

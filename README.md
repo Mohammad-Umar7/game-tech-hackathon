@@ -4,7 +4,9 @@
 
 Runs in any modern browser, no install, no login, no API keys. Also works on phones with touch controls.
 
-![OVERFIT title](docs/title.jpg)
+[![OVERFIT — Shadow wave](docs/teaser.gif)](https://mohammad-umar7.github.io/game-tech-hackathon/docs/overfit-demo.mp4)
+
+*↑ the SHADOW.EXE boss fight. Click for the full 80-second trailer (with sound).*
 
 OVERFIT is a neon arena shooter where the enemies **train themselves against a clone of you**.
 

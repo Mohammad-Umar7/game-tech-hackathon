@@ -161,7 +161,7 @@ body.scanning #c { filter: saturate(.55) brightness(.75) hue-rotate(-12deg); }
 #caption.show { animation: capin .5s ease-out forwards; }
 #caption.top { bottom: auto; top: 2.2vh; font-size: clamp(14px, 1.6vw, 21px); padding: 10px 22px; }
 @keyframes capin { from { opacity: 0; transform: translate(-50%, 18px); } to { opacity: 1; transform: translate(-50%, 0); } }
-#endcard { background: radial-gradient(ellipse at center, rgba(3,2,8,.5), rgba(3,2,8,.92)); z-index: 25; }
+#endcard { background: radial-gradient(ellipse at center, rgba(3,2,8,.82), rgba(3,2,8,.97)); z-index: 25; }
 .endurl { margin-top: 18px; font: 700 clamp(16px, 2.2vw, 26px) 'Orbitron', sans-serif; color: var(--gold); text-shadow: 0 0 16px rgba(255,210,60,.6); letter-spacing: .06em; }
 body.autodemo #c { cursor: none; }
 

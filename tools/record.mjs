@@ -14,7 +14,7 @@ const work = join(tmpdir(), 'overfit-rec'); rmSync(work, { recursive: true, forc
 const PORT = 9333;
 
 const chrome = spawn(CHROME, [
-  '--headless=new', `--remote-debugging-port=${PORT}`, `--window-size=${Wd},${Hd}`, '--hide-scrollbars', '--mute-audio',
+  '--headless=new', '--autoplay-policy=no-user-gesture-required', `--remote-debugging-port=${PORT}`, `--window-size=${Wd},${Hd}`, '--hide-scrollbars', '--mute-audio',
   '--enable-gpu', '--use-angle=d3d11', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader', '--disable-background-timer-throttling',
   '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', `--user-data-dir=${join(work, 'profile')}`, 'about:blank',
 ], { stdio: 'ignore' });
@@ -53,6 +53,10 @@ while ((Date.now() - t0) / 1000 < MAX_S) {
   if (r?.result?.value) break;
 }
 await send('Page.stopScreencast');
+const au = await send('Runtime.evaluate', { expression: 'JSON.stringify({ b: window.__audioB64 || null, t: window.__audioStart || 0 })', returnByValue: true });
+const audio = JSON.parse(au?.result?.value || '{}');
+if (audio.b) { writeFileSync(join(work, 'audio.webm'), Buffer.from(audio.b, 'base64')); console.log(`
+audio: ${(audio.b.length * 0.75 / 1024).toFixed(0)} KB, starts ${(audio.t - frames[0]).toFixed(2)}s in`); }
 ws.close(); chrome.kill();
 console.log(`\ncaptured ${frames.length} frames`);
 // variable-frame-rate concat list using real timestamps
@@ -62,5 +66,8 @@ for (let i = 0; i < frames.length; i++) {
   list += `file 'f/${String(i).padStart(5, '0')}.jpg'\nduration ${d.toFixed(4)}\n`;
 }
 writeFileSync(join(work, 'list.txt'), list);
-execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', join(work, 'list.txt'), '-vf', `fps=30,scale=${Wd}:${Hd}:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-movflags', '+faststart', OUT], { stdio: 'inherit' });
+const args = ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', join(work, 'list.txt')];
+if (audio.b) args.push('-itsoffset', String(Math.max(0, audio.t - frames[0])), '-i', join(work, 'audio.webm'), '-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '192k', '-af', 'apad', '-shortest');
+args.push('-vf', `fps=30,scale=${Wd}:${Hd}:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '23', '-movflags', '+faststart', OUT);
+execFileSync('ffmpeg', args, { stdio: 'inherit' });
 console.log('wrote', OUT);
