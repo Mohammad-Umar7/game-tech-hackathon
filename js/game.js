@@ -233,6 +233,7 @@ export class Game {
         this.ui.banner('OUT OF DISTRIBUTION', "they can't predict you — score boosted", 'clear');
         this.audio.glitch(); R.kick(0.5); R.grid.pulse = 1;
         for (const h of this.hunters) if (h.spawnT <= 0) this.ui.popup(h.x, h.y, '???', 'nova');
+        this.confusedT = 2.2;
       }
       if (this.ood < 0.4) this.oodFlag = false;
     }
@@ -253,6 +254,7 @@ export class Game {
     }
     this.slowmo = Math.max(0, this.slowmo - dt);
     this.hitstop = Math.max(0, this.hitstop - dt);
+    this.confusedT = Math.max(0, (this.confusedT || 0) - dt);
   }
 
   updateShadow(sh, dt) {
@@ -399,7 +401,9 @@ export class Game {
     }
     for (const h of this.hunters) {
       const s = h.spawnT > 0 ? 1 - h.spawnT / 0.8 : 1;
-      R.place(h.mesh, h.x, h.y, h.heading, 10 + (h.spawnT > 0 ? h.spawnT * 160 : 0));
+      const cj = this.confusedT > 0 ? 9 * Math.min(1, this.confusedT) : 0; // glitch when they lose track of you
+      R.place(h.mesh, h.x + (Math.random() - 0.5) * cj, h.y + (Math.random() - 0.5) * cj, h.heading + (cj ? (Math.random() - 0.5) * 1.2 : 0), 10 + (h.spawnT > 0 ? h.spawnT * 160 : 0));
+      if (cj && Math.random() < 0.3) R.fx.trail(h.x, h.y, hdr(0.6, 1.4, 3), 12, 0.25);
       h.mesh.scale.setScalar(0.2 + 0.8 * s);
       h.mesh.rotation.z = Math.sin(t * 3 + h.x) * 0.15;
       if (h.hitFlash > 0) { h.hitFlash = Math.max(0, h.hitFlash - 0.12); h.mesh.userData.body.material.color.copy(h.color).lerp(WHITE, h.hitFlash); } else if (h.hitFlash === 0) { h.mesh.userData.body.material.color.copy(h.color).multiplyScalar(0.25); h.hitFlash = -1; }
