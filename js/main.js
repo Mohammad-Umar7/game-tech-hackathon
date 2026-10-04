@@ -227,7 +227,7 @@ function deploy() {
 function gameOver() {
   state = 'over'; ui.show('hud', false); ui.show('touch', false); stick = null; ui.show('brain', false); scan = false;
   let best = 0;
-  try { best = +localStorage.getItem('overfit-best') || 0; if (game.score > best) localStorage.setItem('overfit-best', String(game.score)); } catch (e) { /* storage blocked */ }
+  try { best = +localStorage.getItem('overfit-best') || 0; if (game.score > best && !BOT) localStorage.setItem('overfit-best', String(game.score)); } catch (e) { /* storage blocked */ }
   const m = game.rec.fit(game.model);
   $('ostats').innerHTML = [
     ['SCORE', game.score.toLocaleString('en-US')], ['WAVE', game.wave], ['KILLS', game.kills],

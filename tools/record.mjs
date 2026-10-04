@@ -10,7 +10,8 @@ const OUT = resolve(process.argv[3] || 'docs/overfit-demo.mp4');
 const Wd = +(process.argv[4] || 1920), Hd = +(process.argv[5] || 1080);
 const MAX_S = 200;
 const CHROME = ['C:/Program Files/Google/Chrome/Application/chrome.exe', 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(existsSync);
-const work = join(tmpdir(), 'overfit-rec'); rmSync(work, { recursive: true, force: true }); mkdirSync(join(work, 'f'), { recursive: true });
+const work = join(tmpdir(), `overfit-rec-${Date.now()}`); mkdirSync(join(work, 'f'), { recursive: true });
+const writeRetry = (p, buf) => { for (let i = 0; i < 20; i++) { try { writeFileSync(p, buf); return; } catch (e) { if (e.code !== 'EPERM' && e.code !== 'EBUSY') throw e; const t = Date.now(); while (Date.now() - t < 15); } } };
 const PORT = 9333;
 
 const chrome = spawn(CHROME, [
@@ -33,7 +34,7 @@ ws.addEventListener('message', ev => {
   if (m.method === 'Page.screencastFrame') {
     const { data, metadata, sessionId } = m.params;
     const n = frames.length;
-    writeFileSync(join(work, 'f', `${String(n).padStart(5, '0')}.jpg`), Buffer.from(data, 'base64'));
+    writeRetry(join(work, 'f', `${String(n).padStart(5, '0')}.jpg`), Buffer.from(data, 'base64'));
     frames.push(metadata.timestamp);
     send('Page.screencastFrameAck', { sessionId });
   }
@@ -71,3 +72,4 @@ if (audio.b) args.push('-itsoffset', String(Math.max(0, audio.t - frames[0])), '
 args.push('-vf', `fps=30,scale=${Wd}:${Hd}:flags=lanczos,format=yuv420p`, '-c:v', 'libx264', '-preset', 'slow', '-crf', '23', '-movflags', '+faststart', OUT);
 execFileSync('ffmpeg', args, { stdio: 'inherit' });
 console.log('wrote', OUT);
+try { rmSync(work, { recursive: true, force: true }); } catch { /* temp cleanup best-effort */ }
