@@ -76,6 +76,9 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); bo
   clip-path: polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%); transition: transform .12s, box-shadow .12s; }
 .btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 0 40px rgba(60,240,255,.7), inset 0 0 24px rgba(60,240,255,.3); }
 .btn:disabled { opacity: .45; cursor: wait; border-color: var(--violet); }
+.alt { margin-top: 16px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn.ghost { display: inline-block; text-decoration: none; font-size: 11px; padding: 8px 16px; letter-spacing: .15em; border-color: var(--line); background: rgba(10,6,28,.5); box-shadow: none; color: var(--dim); }
+.btn.ghost:hover { color: #fff; border-color: var(--cyan); }
 .btn.mini { margin-top: 14px; font-size: 11px; padding: 9px 18px; letter-spacing: .15em; }
 .btn.big { font-size: 22px; padding: 18px 48px; }
 .btn small { font-size: 10px; letter-spacing: .2em; opacity: .6; margin-left: 10px; }
@@ -139,7 +142,14 @@ body.scanning #c { filter: saturate(.55) brightness(.75) hue-rotate(-12deg); }
 #ostats div { padding: 14px; background: var(--panel); border: 1px solid var(--line); }
 #ostats b { display: block; font: 900 28px 'Orbitron', sans-serif; text-shadow: 0 0 14px rgba(60,240,255,.7); }
 #ostats span { font-size: 10px; letter-spacing: .18em; color: var(--dim); }
-#ohabit { margin-bottom: 26px; font-size: 15px; color: var(--dim); }
+#curve { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 92px; margin: 0 auto 22px; }
+#curve:empty { display: none; }
+#curve div { width: 46px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; font-size: 11px; color: var(--dim); }
+#curve i { display: block; width: 100%; background: linear-gradient(0deg, var(--violet), var(--pink)); box-shadow: 0 0 12px rgba(255,63,164,.5); margin: 3px 0; }
+#curve b { font: 700 12px 'Orbitron', sans-serif; color: #fff; }
+#curve .cl { align-self: center; width: auto; height: auto; margin-right: 6px; text-align: right; letter-spacing: .12em; }
+#incoming { margin: -14px auto 22px; padding: 10px 18px; max-width: 620px; border: 1px solid var(--red); color: #ffb3c0; background: rgba(60,0,15,.55); font-size: 14px; letter-spacing: .06em; box-shadow: 0 0 22px rgba(255,42,74,.35); animation: pulse .9s infinite alternate; }
+#ohabit { margin-bottom: 18px; font-size: 15px; color: var(--dim); }
 #ohabit b { color: var(--pink); }
 #pause .btn { margin-top: 24px; }
 

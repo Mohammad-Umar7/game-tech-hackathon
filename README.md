@@ -1,7 +1,8 @@
 # OVERFIT — the arena is learning you
 
-**▶ Play it now: https://mohammad-umar7.github.io/game-tech-hackathon/** — runs in any modern browser, no install, no login, no API keys.
-Also works on phones with touch controls.
+### ▶ [PLAY NOW](https://mohammad-umar7.github.io/game-tech-hackathon/) · 🎬 [TRAILER](https://mohammad-umar7.github.io/game-tech-hackathon/docs/overfit-demo.mp4) · 🤖 [WATCH AI vs AI](https://mohammad-umar7.github.io/game-tech-hackathon/?bot)
+
+Runs in any modern browser, no install, no login, no API keys. Also works on phones with touch controls.
 
 ![OVERFIT title](docs/title.jpg)
 
@@ -77,7 +78,9 @@ The same pipeline can be used as **adaptive enemy AI middleware**:
 
 **Touch:** drag on the left side to move; aiming and firing are automatic; on-screen buttons for DASH, NOVA and SCAN.
 
-**AI vs AI:** open [`?bot`](https://mohammad-umar7.github.io/game-tech-hackathon/?bot) to let an AI pilot play while the hunters evolve against *its* style. Good for spectating.
+**AI vs AI:** open [`?bot`](https://mohammad-umar7.github.io/game-tech-hackathon/?bot) and an AI pilot plays by itself, hands-free, while the hunters keep evolving against *its* style. If it dies, it restarts.
+
+**Trailer mode:** [`?autodemo`](https://mohammad-umar7.github.io/game-tech-hackathon/?autodemo) plays a captioned tour of the whole loop. `tools/record.mjs` records it to MP4 using headless Chrome's screencast and ffmpeg — that's how the trailer was made.
 
 ## Run locally
 ```bash

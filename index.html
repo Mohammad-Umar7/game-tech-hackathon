@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OVERFIT — the arena learns you</title>
   <meta name="description" content="A neon arena shooter whose enemies evolve neural networks against a clone of YOU — trained live in your browser.">
+  <meta property="og:title" content="OVERFIT — the arena is learning you">
+  <meta property="og:description" content="Neon arena shooter whose neural-net enemies evolve against a behavioural clone of YOU, live in your browser. No servers, no API keys.">
+  <meta property="og:image" content="https://mohammad-umar7.github.io/game-tech-hackathon/docs/gameplay.jpg">
+  <meta property="og:url" content="https://mohammad-umar7.github.io/game-tech-hackathon/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#05030f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2305030f'/%3E%3Cpath d='M52 32 18 50l7-18-7-18z' fill='none' stroke='%233cf0ff' stroke-width='5' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
@@ -41,7 +48,9 @@
       <div class="kicker">TENCENT × ARCADE AI HACKATHON · GAME TECH TRACK</div>
       <h1 class="logo" data-text="OVERFIT">OVERFIT</h1>
       <div class="tagline">the arena is learning <span>you</span>.</div>
+      <div id="incoming" class="hidden"></div>
       <button id="play" class="btn big">▶ PLAY <small>ENTER</small></button>
+      <div class="alt"><a href="?bot" class="btn ghost">◉ WATCH AI vs AI</a><a href="docs/overfit-demo.mp4" target="_blank" class="btn ghost">▶ TRAILER</a><a href="https://github.com/Mohammad-Umar7/game-tech-hackathon" target="_blank" class="btn ghost">&lt;/&gt; SOURCE</a></div>
       <div class="touchnote">touch mode: drag left side to move · auto-aim + auto-fire · buttons for dash / nova / scan</div>
       <div class="how">
         <div><b>01 · IT WATCHES</b>Every move you make is recorded and fitted into a behavioural model — your <i>shadow</i>.</div>
@@ -110,7 +119,9 @@
       <h1 class="logo small" data-text="YOU WERE OVERFIT">YOU WERE OVERFIT</h1>
       <div id="ostats"></div>
       <div id="ohabit"></div>
+      <div id="curve"></div>
       <button id="retry" class="btn big">↻ RETRY <small>ENTER</small></button>
+      <div class="alt"><button id="share" class="btn ghost">⚔ SEND YOUR HUNTERS TO A FRIEND</button></div>
     </div>
   </div>
   <div id="pause" class="overlay hidden"><div class="over-inner"><h1 class="logo small" data-text="PAUSED">PAUSED</h1><button id="resume" class="btn">RESUME</button></div></div>

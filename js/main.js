@@ -6,6 +6,7 @@ import { Renderer } from './render.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
 import { Game } from './game.js';
+import { encodeHunters, decodeHunters } from './share.js';
 
 const $ = id => document.getElementById(id);
 const R = new Renderer($('c'));
@@ -21,8 +22,15 @@ function freshAI() {
   trainer.totalDuels = 0;
   if (game) { game.pop = pop; } else game = new Game(R, audio, ui, pop);
   game.model = { ...DEFAULT_MODEL };
+  game.curve = [];
+  if (incoming) pop.seed(incoming.genes, incoming.generation);
 }
+const incoming = (() => { const m = location.hash.match(/nemesis=([\w-]+)/); return m ? decodeHunters(m[1]) : null; })();
 freshAI();
+if (incoming) {
+  $('incoming').innerHTML = `⚠ INCOMING NEMESIS — a friend sent you hunters evolved over <b>${incoming.generation}+ generations</b> against <b>their</b> shadow (they reached wave ${incoming.wave}). Survive them.`;
+  ui.show('incoming', true);
+}
 
 const AUTO = new URLSearchParams(location.search).has('autodemo');
 const BOT = AUTO || new URLSearchParams(location.search).has('bot');
@@ -108,6 +116,12 @@ $('play').onclick = () => startRun();
 $('retry').onclick = () => startRun();
 $('deploy').onclick = () => deploy();
 $('resume').onclick = () => togglePause();
+$('share').onclick = async () => {
+  const src = (pop.lastGen || pop.genomes).slice().sort((a, b) => b.fitness - a.fitness);
+  const url = `${location.origin}${location.pathname}#nemesis=${encodeHunters(src, pop.generation, game.wave)}`;
+  try { await navigator.clipboard.writeText(url); $('share').textContent = '✓ LINK COPIED — send it to a friend'; }
+  catch (e) { prompt('Copy this link and send it to a friend:', url); }
+};
 $('export').onclick = () => {
   const ch = pop.champion;
   const data = { format: 'overfit-hunter-brain/v1', topology: { inputs: 13, hidden: 12, outputs: 7, activation: 'tanh' },
@@ -187,6 +201,8 @@ function updateLab(dt) {
   if (!trainer.running && !lab.done) {
     lab.done = true;
     const after = probe(pop.champion, lab.model);
+    if (!game.curve.length) game.curve.push({ wave: game.wave, acc: lab.before.acc, label: 'START' });
+    game.curve.push({ wave: game.wave, acc: after.acc, label: `W${game.wave}` });
     $('learned').innerHTML = describeLearning(lab.before, after, lab.model).map((s, i) => `<li style="animation-delay:${i * 0.22}s">${s}</li>`).join('');
     const ph = pop.champion.pheno;
     $('champ').innerHTML = `<span style="color:hsl(${ph.hue},100%,65%)">◆ CHAMPION #${pop.champion.id}</span> · gen ${pop.generation} · fitness ${Math.round(pop.champion.fitness || last?.best || 0)}`;
@@ -212,12 +228,15 @@ function gameOver() {
     ['AI GENERATIONS', pop.generation], ['DUELS VS YOUR SHADOW', trainer.totalDuels.toLocaleString('en-US')], ['BEST', Math.max(best, game.score).toLocaleString('en-US')],
   ].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('');
   $('ohabit').innerHTML = `What gave you away: ${insights(m)[0] || 'nothing — you were unreadable'}`;
+  const cv = game.curve || [], mx = Math.max(0.01, ...cv.map(c => c.acc));
+  $('curve').innerHTML = cv.length > 1 ? `<div class="cl">THEIR HIT RATE<br>ON YOUR SHADOW</div>` + cv.map(c => `<div><b>${Math.round(c.acc * 100)}%</b><i style="height:${Math.max(4, c.acc / mx * 56)}px"></i>${c.label}</div>`).join('') : '';
+  $('share').textContent = '⚔ SEND YOUR HUNTERS TO A FRIEND';
   ui.show('over', true);
   audio.stopMusic();
 }
 
 // ---------------- cinematic autodemo (for the trailer) ----------------
-let ad = { step: 0, t: 0, t0: 0 };
+let ad = { step: 0, t: 0, t0: 0 }, spect = { t: 0, state: '' };
 function caption(html) {
   const el = $('caption');
   el.classList.remove('show'); void el.offsetWidth;
@@ -260,6 +279,13 @@ function frame(now) {
   const dt = real * scale;
 
   if (AUTO) autodemo(real);
+  else if (BOT) { // spectator mode: the AI pilot plays forever, the hunters keep learning its style
+    spect.t += real;
+    if (state !== spect.state) { spect.state = state; spect.t = 0; }
+    if (state === 'title' && spect.t > 2.5) startRun();
+    if (state === 'lab' && lab && lab.done && spect.t > 9) deploy();
+    if (state === 'over' && spect.t > 6) startRun();
+  }
   if (state === 'title') {
     game.update(real * (game.slowmo > 0 ? 0.4 : 1), input);
     if (game.state === 'cleared') { demoWave = demoWave % 4 + 1; game.startWave(demoWave); }

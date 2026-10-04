@@ -115,6 +115,16 @@ export class Population {
     }
     this.genomes = next;
   }
+    // replace the population with imported genomes (+ mutated variants)
+  seed(geneList, gen = 0) {
+    this.genomes = this.genomes.map((_, i) => {
+      const src = geneList[i % geneList.length], g = new Float32Array(src);
+      if (i >= geneList.length) for (let k = 0; k < GENOME_LEN; k++) if (this.rng() < 0.1) g[k] += gauss(this.rng) * 0.25;
+      return makeGenome(g, gen);
+    });
+    this.genomes.forEach((g, i) => (g.prevFitness = geneList.length - Math.min(i, geneList.length)));
+    this.generation = gen; this.champion = this.genomes[0];
+  }
   // pick genomes for a real wave: champion first, then elites, then diverse picks
   sample(n) {
     const pop = this.genomes.slice().sort((a, b) => (b.prevFitness ?? b.fitness) - (a.prevFitness ?? a.fitness));
