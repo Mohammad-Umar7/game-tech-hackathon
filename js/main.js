@@ -145,6 +145,11 @@ function startRun() {
   game.rec.reset();
   state = 'play'; paused = false; scan = false; ui.show('brain', false);
   game.startWave(1);
+  if (!BOT) {
+    caption(TOUCH ? 'Drag left side to <b>move</b> · aiming + firing are <b>automatic</b> · tap <b>DASH</b> through bullets'
+                  : '<b>WASD</b> move · <b>MOUSE</b> aim · <b>HOLD CLICK</b> fire · <b>SHIFT</b> dash · <b>E</b> nova · <b>B</b> brain scan');
+    clearTimeout(hintT); hintT = setTimeout(() => caption(''), 6500);
+  }
 }
 
 function togglePause() { paused = !paused; ui.show('pause', paused); }
@@ -236,7 +241,7 @@ function gameOver() {
 }
 
 // ---------------- cinematic autodemo (for the trailer) ----------------
-let ad = { step: 0, t: 0, t0: 0 }, spect = { t: 0, state: '' };
+let ad = { step: 0, t: 0, t0: 0 }, spect = { t: 0, state: '' }, hintT = 0;
 function caption(html) {
   const el = $('caption');
   el.classList.remove('show'); void el.offsetWidth;
