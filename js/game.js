@@ -17,6 +17,8 @@ export class Game {
     this.demo = false;
     this.player = null; this.hunters = []; this.drones = []; this.pb = []; this.eb = []; this.pickups = []; this.shadow = null;
     this.slowmo = 0; this.hitstop = 0;
+    this.touch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    this.droneCap = this.touch ? 18 : 32;
   }
 
   reset(demo = false) {
@@ -40,7 +42,7 @@ export class Game {
     this.boss = n % 3 === 0;
     if (!this.demo) { this.rec.reset(); }
     const q = this.spawnQ = [];
-    const nh = this.boss ? Math.min(2 + Math.floor(n / 3), 6) : Math.min(3 + n, 12);
+    const nh = this.boss ? Math.min(2 + Math.floor(n / 3), this.touch ? 4 : 6) : Math.min(3 + n, this.touch ? 8 : 12);
     const genomes = this.pop.sample(nh);
     genomes.forEach((g, i) => q.push({ t: 0.6 + i * 0.75, kind: 'hunter', genome: g, champion: i === 0 }));
     const nd = this.boss ? 6 + n * 2 : 8 + n * 5;
@@ -96,7 +98,13 @@ export class Game {
     const p = this.player, R = this.R;
     if (this.state === 'wave') {
       this.waveT += dt;
-      while (this.spawnQ.length && this.spawnQ[0].t <= this.waveT) this.spawn(this.spawnQ.shift());
+      if (this.spawnQ.length && this.spawnQ[0].t <= this.waveT) {
+        for (const s of this.spawnQ.filter(q => q.t <= this.waveT)) {
+          if (s.kind === 'drones' && this.drones.length >= this.droneCap) { s.t = this.waveT + 0.7; continue; }
+          this.spawnQ.splice(this.spawnQ.indexOf(s), 1); this.spawn(s);
+        }
+        this.spawnQ.sort((a, b) => a.t - b.t);
+      }
     }
     // --- player control ---
     if (p.alive) {
@@ -355,7 +363,7 @@ export class Game {
     if (this.godmode) { p.invuln = 0.6; R.hurt(); R.fx.hit(p.x, p.y, C_PLAYER); return; }
     p.hp--; p.invuln = PLAYER.invuln;
     this.rec.damage++;
-    R.hurt(); R.grid.push(p.x, p.y, 700, 300); R.fx.explode(p.x, p.y, C_PLAYER, 0.6);
+    R.hurt(); R.grid.push(p.x, p.y, 320, 220); R.fx.ring(p.x, p.y, hdr(2.6, 0.4, 0.6), 150, 0.45); R.fx.hit(p.x, p.y, hdr(2.4, 0.5, 0.6));
     this.audio.hurt(); this.slowmo = Math.max(this.slowmo, 0.18); this.combo = 0;
     for (const b of this.eb) if (Math.hypot(b.x - p.x, b.y - p.y) < 170) b.life = 0;
     if (p.hp <= 0) {
@@ -392,10 +400,12 @@ export class Game {
     const R = this.R, p = this.player, t = this.time;
     if (p.mesh) {
       R.place(p.mesh, p.x, p.y, Math.atan2(p.cmd.aimy, p.cmd.aimx), 10);
-      const blink = p.invuln > 0 && !this.demo && Math.floor(t * 20) % 2 === 0;
-      p.mesh.visible = !blink;
+      p.mesh.visible = true;
+      const hurtPulse = p.invuln > 0 && !this.demo ? 0.55 + 0.45 * Math.abs(Math.sin(t * 14)) : 1;
+      p.mesh.userData.body.material.opacity = hurtPulse; p.mesh.userData.edge.material.opacity = Math.max(0.8, hurtPulse);
       p.mesh.userData.shield.visible = p.invuln > 0 && !this.demo;
-      const you = p.mesh.userData.you; you.visible = !this.demo; you.rotation.y = t * 1.5 + Math.atan2(p.cmd.aimy, p.cmd.aimx); you.scale.setScalar(1 + Math.sin(t * 6) * 0.06);
+      const you = p.mesh.userData.you; you.visible = !this.demo; you.rotation.y = t * 1.5 + Math.atan2(p.cmd.aimy, p.cmd.aimx);
+      you.scale.setScalar(p.invuln > 0 && !this.demo ? 1.25 + Math.sin(t * 16) * 0.12 : 1 + Math.sin(t * 6) * 0.06); // grows + throbs while you recover
     }
     for (const h of this.hunters) {
       const s = h.spawnT > 0 ? 1 - h.spawnT / 0.8 : 1;

@@ -85,6 +85,8 @@ export class FX {
     m.userData = { life, max: life, radius }; m.scale.setScalar(1);
   }
   flash(wx, wy, col, size, life = 0.25, y = 20) {
+    size *= this.flashQ ?? 1;
+    if (size < 30) return;
     const s = this.flashes[this.fi]; this.fi = (this.fi + 1) % this.flashes.length;
     s.visible = true; s.position.set(toX(wx), y, toZ(wy)); s.material.color.copy(col);
     s.userData = { life, max: life, size }; s.scale.setScalar(size);

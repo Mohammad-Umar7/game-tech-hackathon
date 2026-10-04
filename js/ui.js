@@ -69,7 +69,8 @@ export class UI {
     if (nv !== this.novaCache) { this.novaCache = nv; $('novas').innerHTML = Array.from({ length: 3 }, (_, i) => `<i class="${i < p.novas ? 'on' : ''}"></i>`).join('') + (document.body.classList.contains('touch') ? '<span>NOVA</span>' : '<span>NOVA [E]</span>'); }
     const o = g.ood;
     this.css('oodbar', 'width', `${Math.round(o * 50) * 2}%`);
-    this.txt('oodtxt', o > 0.66 ? `OUT OF DISTRIBUTION · SCORE ×${(1 + o).toFixed(1)}` : o > 0.33 ? `DRIFTING · SCORE ×${(1 + o).toFixed(1)}` : 'PREDICTABLE · they expect this');
+    if (this.touch) this.txt('oodtxt', o > 0.66 ? `OUT OF DISTRIBUTION ×${(1 + o).toFixed(1)}` : o > 0.33 ? `DRIFTING ×${(1 + o).toFixed(1)}` : 'PREDICTABLE');
+    else this.txt('oodtxt', o > 0.66 ? `OUT OF DISTRIBUTION · SCORE ×${(1 + o).toFixed(1)}` : o > 0.33 ? `DRIFTING · SCORE ×${(1 + o).toFixed(1)}` : 'PREDICTABLE · they expect this');
     $('ood').classList.toggle('hot', o > 0.66);
     if (g.shadow && g.shadow.spawnT <= 0) {
       this.show('bossbar', true);

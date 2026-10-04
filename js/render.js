@@ -56,8 +56,8 @@ export class Renderer {
   constructor(canvas) {
     this.canvas = canvas;
     const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
-    const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
-    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1 : 1.5));
+    const coarse = this.coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    r.setPixelRatio(1);
     r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x030208);
@@ -82,7 +82,7 @@ export class Renderer {
     this.trauma = 0; this.aberr = 0; this.damage = 0; this.warp = 0; this.time = 0; this.zoom = 0; this.zoomAt = new THREE.Vector3();
     this.focus = new THREE.Vector3();
     this.raycaster = new THREE.Raycaster(); this.plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -10);
-    this.resize();
+    this.setTier(coarse ? 1 : 2);
     window.addEventListener('resize', () => this.resize());
   }
 
@@ -234,8 +234,8 @@ export class Renderer {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
-    const coarseB = window.matchMedia && matchMedia('(pointer: coarse)').matches;
-    this.bloom.resolution.set(w / (coarseB ? 4 : 2), h / (coarseB ? 4 : 2));
+    const div = this.tier >= 2 ? 2 : 4;
+    this.bloom.resolution.set(Math.max(64, w / div), Math.max(64, h / div));
     this.camera.aspect = w / h;
     const vf = THREE.MathUtils.degToRad(this.camera.fov / 2);
     const hf = Math.atan(Math.tan(vf) * this.camera.aspect);
@@ -249,6 +249,18 @@ export class Renderer {
     this.fx.points.material.uniforms.uScale.value = h * 0.9;
   }
   // drop resolution if the machine can't keep up
+  // 2 = full (laptops), 1 = phone (1x res, quarter-res glow, half particles), 0 = emergency (no glow, 0.75x res)
+  setTier(t) {
+    this.tier = t;
+    const dpr = window.devicePixelRatio || 1;
+    const pr = t >= 2 ? Math.min(dpr, 1.5) : t === 1 ? Math.min(dpr, 1) : 0.75;
+    this.renderer.setPixelRatio(pr); this.composer.setPixelRatio(pr);
+    this.bloom.enabled = t >= 1;
+    this.bloom.strength = t >= 2 ? 0.85 : 0.7;
+    this.fx.q = t >= 2 ? 1 : t === 1 ? 0.5 : 0.3;
+    this.fx.flashQ = t >= 2 ? 1 : t === 1 ? 0.55 : 0.3;
+    this.resize();
+  }
   lowerQuality() {
     const pr = this.renderer.getPixelRatio();
     if (pr <= 0.6) return false;
@@ -256,10 +268,10 @@ export class Renderer {
     this.renderer.setPixelRatio(next); this.composer.setPixelRatio(next); this.resize();
     return true;
   }
-  shake(t) { this.trauma = Math.min(1, this.trauma + t); }
-  kick(a) { this.aberr = Math.min(1, this.aberr + a); }
+  shake(t) { this.trauma = Math.min(1, this.trauma + t * (this.tier >= 2 ? 1 : 0.6)); }
+  kick(a) { this.aberr = Math.min(1, this.aberr + a * (this.tier >= 2 ? 1 : 0.45)); }
   punch(x, y) { this.zoom = 1; this.zoomAt.set(toX(x), 0, toZ(y)); }
-  hurt() { this.damage = 1; this.kick(0.6); this.shake(0.6); }
+  hurt() { this.damage = 0.55; this.kick(0.22); this.shake(0.3); }
 
   screenToWorld(sx, sy) {
     const ndc = new THREE.Vector2((sx / window.innerWidth) * 2 - 1, -(sy / window.innerHeight) * 2 + 1);

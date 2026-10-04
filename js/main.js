@@ -287,12 +287,18 @@ function autodemo(real) {
 }
 
 // ---------------- main loop ----------------
-let last = performance.now(), overT = 0, perf = { acc: 0, n: 0 };
+let last = performance.now(), overT = 0, perf = { ema: 16, slow: 0 };
+const forcedTier = new URLSearchParams(location.search).get('tier');
+if (forcedTier !== null) R.setTier(+forcedTier);
 function frame(now) {
   requestAnimationFrame(frame);
   const real = Math.min(0.05, (now - last) / 1000); last = now;
-  perf.acc += real; perf.n++;
-  if (perf.n >= 120) { if (perf.acc / perf.n > 0.036 && !document.hidden) R.lowerQuality(); perf.acc = 0; perf.n = 0; }
+  // adaptive quality: if frames run slow for ~1 s of play, step the graphics down a tier
+  perf.ema += (real * 1000 - perf.ema) * 0.05;
+  if ((state === 'play' || state === 'title') && !paused && !document.hidden && perf.ema > 21) {
+    perf.slow += real;
+    if (perf.slow > 1.2 && R.tier > 0) { R.setTier(R.tier - 1); perf.slow = 0; perf.ema = 16; }
+  } else perf.slow = Math.max(0, perf.slow - real);
   let scale = 1;
   if (state === 'play' && paused) scale = 0;
   else if (scan) scale = TOUCH ? 0.25 : 0.12;
