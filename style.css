@@ -90,7 +90,7 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); bo
 .foot { margin-top: 14px; font-size: 11px; letter-spacing: .2em; color: #5f5890; text-transform: uppercase; }
 
 /* ---------- lab ---------- */
-#lab { flex-direction: column; gap: 14px; padding: 18px; padding-top: 64px; background: radial-gradient(ellipse at center, rgba(8,4,24,.82), rgba(3,2,8,.94)); backdrop-filter: blur(3px); }
+#lab { flex-direction: column; gap: 10px; padding: 14px 18px; padding-top: 58px; background: radial-gradient(ellipse at center, rgba(8,4,24,.82), rgba(3,2,8,.94)); backdrop-filter: blur(3px); }
 .lab-head { text-align: center; }
 .lab-head .tag { font-size: 12px; letter-spacing: .4em; color: var(--pink); }
 #labtitle { font: 900 clamp(22px, 3.4vw, 40px) 'Orbitron', sans-serif; letter-spacing: .14em; color: #fff; text-shadow: 0 0 22px rgba(139,107,255,.9); margin: 4px 0; }
@@ -104,8 +104,8 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); bo
 .live { color: var(--red); animation: pulse .8s infinite alternate; }
 @keyframes pulse { from { opacity: .35; } to { opacity: 1; } }
 #insights, #learned { list-style: none; margin-top: 8px; }
-#insights li, #learned li { font-size: 13px; line-height: 1.45; color: var(--dim); padding: 7px 0; border-bottom: 1px dashed rgba(139,107,255,.18); opacity: 0; animation: slidein .5s ease-out forwards; }
-#learned li { font-size: 14px; color: #d8d2ff; }
+#insights li, #learned li { font-size: 13px; line-height: 1.4; color: var(--dim); padding: 5px 0; border-bottom: 1px dashed rgba(139,107,255,.18); opacity: 0; animation: slidein .5s ease-out forwards; }
+#learned li { font-size: 13.5px; color: #d8d2ff; }
 #learned li.wait { animation: pulse .7s infinite alternate; color: var(--violet); }
 #insights b { color: var(--cyan); }
 #learned b { color: var(--gold); }
@@ -148,6 +148,7 @@ body.scanning #c { filter: saturate(.55) brightness(.75) hue-rotate(-12deg); }
 #curve i { display: block; width: 100%; background: linear-gradient(0deg, var(--violet), var(--pink)); box-shadow: 0 0 12px rgba(255,63,164,.5); margin: 3px 0; }
 #curve b { font: 700 12px 'Orbitron', sans-serif; color: #fff; }
 #curve .cl { align-self: center; width: auto; height: auto; margin-right: 6px; text-align: right; letter-spacing: .12em; }
+#best { margin: -18px 0 22px; font: 700 13px 'Orbitron', sans-serif; letter-spacing: .25em; color: var(--gold); text-shadow: 0 0 12px rgba(255,210,60,.5); }
 #incoming { margin: -14px auto 22px; padding: 10px 18px; max-width: 620px; border: 1px solid var(--red); color: #ffb3c0; background: rgba(60,0,15,.55); font-size: 14px; letter-spacing: .06em; box-shadow: 0 0 22px rgba(255,42,74,.35); animation: pulse .9s infinite alternate; }
 #ohabit { margin-bottom: 18px; font-size: 15px; color: var(--dim); }
 #ohabit b { color: var(--pink); }

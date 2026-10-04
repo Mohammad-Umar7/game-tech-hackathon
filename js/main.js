@@ -27,6 +27,7 @@ function freshAI() {
 }
 const incoming = (() => { const m = location.hash.match(/nemesis=([\w-]+)/); return m ? decodeHunters(m[1]) : null; })();
 freshAI();
+try { const b = +localStorage.getItem('overfit-best') || 0; if (b > 0) { $('best').textContent = `YOUR BEST · ${b.toLocaleString('en-US')}`; ui.show('best', true); } } catch (e) { /* storage blocked */ }
 if (incoming) {
   $('incoming').innerHTML = `⚠ INCOMING NEMESIS — a friend sent you hunters evolved over <b>${incoming.generation}+ generations</b> against <b>their</b> shadow (they reached wave ${incoming.wave}). Survive them.`;
   ui.show('incoming', true);
@@ -49,7 +50,7 @@ addEventListener('keydown', e => {
   keys.add(k);
   if (k === 'shift') input.dash = true;
   if (k === 'e' || k === 'q') input.nova = true;
-  if (k === 'm') audio.toggleMute();
+  if (k === 'm') { const m = audio.toggleMute(); if (state === 'play') { caption(m ? '🔇 sound off · <b>M</b> to unmute' : '🔊 sound on'); clearTimeout(hintT); hintT = setTimeout(() => caption(''), 1400); } }
   if (k === 'b' && state === 'play') toggleScan();
   if ((k === 'p' || k === 'escape') && state === 'play') togglePause();
   if (k === 'enter') {
@@ -164,7 +165,7 @@ function enterLab() {
   const model = game.model = game.rec.fit(prev);
   const before = probe(pop.champion, model);
   trainer.start(model, GA.gensPerWave);
-  lab = { t: 0, model, prev, before, duel: null, fx: [], done: false, lastGen: pop.generation };
+  lab = { t: 0, model, prev, before, beforeGenome: pop.champion, duel: null, fx: [], done: false, lastGen: pop.generation };
   newFeatured();
   ui.show('hud', false); ui.show('lab', true);
   $('labtitle').textContent = 'ANALYZING YOU';
@@ -206,8 +207,8 @@ function updateLab(dt) {
   if (!trainer.running && !lab.done) {
     lab.done = true;
     const after = probe(pop.champion, lab.model);
-    if (!game.curve.length) game.curve.push({ wave: game.wave, acc: lab.before.acc, label: 'START' });
-    game.curve.push({ wave: game.wave, acc: after.acc, label: `W${game.wave}` });
+    if (!game.curve.length) game.curve.push({ genome: lab.beforeGenome, label: 'START' });
+    game.curve.push({ genome: pop.champion, label: `W${game.wave}` });
     $('learned').innerHTML = describeLearning(lab.before, after, lab.model).map((s, i) => `<li style="animation-delay:${i * 0.22}s">${s}</li>`).join('');
     const ph = pop.champion.pheno;
     $('champ').innerHTML = `<span style="color:hsl(${ph.hue},100%,65%)">◆ CHAMPION #${pop.champion.id}</span> · gen ${pop.generation} · fitness ${Math.round(pop.champion.fitness || last?.best || 0)}`;
@@ -233,8 +234,10 @@ function gameOver() {
     ['AI GENERATIONS', pop.generation], ['DUELS VS YOUR SHADOW', trainer.totalDuels.toLocaleString('en-US')], ['BEST', Math.max(best, game.score).toLocaleString('en-US')],
   ].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('');
   $('ohabit').innerHTML = `What gave you away: ${insights(m)[0] || 'nothing — you were unreadable'}`;
-  const cv = game.curve || [], mx = Math.max(0.01, ...cv.map(c => c.acc));
-  $('curve').innerHTML = cv.length > 1 ? `<div class="cl">THEIR HIT RATE<br>ON YOUR SHADOW</div>` + cv.map(c => `<div><b>${Math.round(c.acc * 100)}%</b><i style="height:${Math.max(4, c.acc / mx * 56)}px"></i>${c.label}</div>`).join('') : '';
+  const cv = (game.curve || []).slice(-8);
+  for (const c of cv) c.acc = probe(c.genome, m).acc; // every wave's champion vs the FINAL model of you
+  const mx = Math.max(0.01, ...cv.map(c => c.acc));
+  $('curve').innerHTML = cv.length > 1 ? `<div class="cl">EACH WAVE'S CHAMPION<br>vs YOUR FINAL SHADOW<br><b>SHOTS ON TARGET</b></div>` + cv.map(c => `<div><b>${Math.round(c.acc * 100)}%</b><i style="height:${Math.max(4, c.acc / mx * 56)}px"></i>${c.label}</div>`).join('') : '';
   $('share').textContent = '⚔ SEND YOUR HUNTERS TO A FRIEND';
   ui.show('over', true);
   audio.stopMusic();

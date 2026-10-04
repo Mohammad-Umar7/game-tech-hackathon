@@ -22,8 +22,8 @@ export class Duel {
       this.hunters.push(newHunterState(new Brain(genome.genes), x, y));
     }
     this.gb = []; this.hb = []; // ghost bullets, hunter bullets
-    this.step = 0; this.hitsOnGhost = 0; this.hitsTaken = 0; this.alive = 0; this.closeTime = 0; this.shots = 0; this.distSum = 0; this.distN = 0;
-    this.spawnH = (x, y, vx, vy) => { this.shots++; this.hb.push({ x, y, vx, vy, life: HUNTER.bulletLife }); };
+    this.step = 0; this.hitsOnGhost = 0; this.hitsTaken = 0; this.alive = 0; this.closeTime = 0; this.shots = 0; this.distSum = 0; this.distN = 0; this.onTarget = 0;
+    this.spawnH = (x, y, vx, vy) => { this.shots++; this.hb.push({ x, y, vx, vy, life: HUNTER.bulletLife, minD: 1e9 }); };
     this.events = null; // optional visual event sink
   }
   tick() {
@@ -70,11 +70,13 @@ export class Duel {
       const ox = b.x, oy = b.y;
       b.x += b.vx * DT; b.y += b.vy * DT; b.life -= DT;
       let hit = false;
-      if (g.dashT <= 0 && segDist2(ox, oy, b.x, b.y, g.x, g.y) < (PLAYER.radius + 5) ** 2) {
+      const d2 = segDist2(ox, oy, b.x, b.y, g.x, g.y);
+      if (d2 < b.minD) b.minD = d2;
+      if (g.dashT <= 0 && d2 < (PLAYER.radius + 5) ** 2) {
         this.hitsOnGhost++; hit = true;
         if (this.events) this.events.push({ t: 'ghosthit', x: g.x, y: g.y });
       }
-      if (hit || b.life <= 0 || b.x < 0 || b.x > W || b.y < 0 || b.y > H) this.hb.splice(i, 1);
+      if (hit || b.life <= 0 || b.x < 0 || b.x > W || b.y < 0 || b.y > H) { if (hit || b.minD < 45 * 45) this.onTarget++; this.hb.splice(i, 1); }
     }
     this.step++;
     return this.step < DUEL_STEPS && alive > 0;
@@ -85,7 +87,7 @@ export class Duel {
   }
   fitness() {
     // hits land on the shadow, squad survives, stays in the fight
-    return this.hitsOnGhost * 100 + this.alive * DT * 4 - this.hitsTaken * 6 + this.closeTime * 1.5;
+    return this.hitsOnGhost * 100 + this.onTarget * 20 + this.alive * DT * 1.5 - this.hitsTaken * 3 + this.closeTime * 0.5;
   }
 }
 
@@ -114,8 +116,8 @@ export class Trainer {
     while (performance.now() - t0 < budgetMs) {
       const g = gs[this.idx];
       // two different arenas per genome to reduce luck
-      g.fitness = new Duel(g, this.model, this.genSeed + 1).run() + new Duel(g, this.model, this.genSeed + 2).run();
-      this.duels += 2; this.totalDuels += 2;
+      g.fitness = new Duel(g, this.model, this.genSeed + 1).run() + new Duel(g, this.model, this.genSeed + 2).run() + new Duel(g, this.model, this.genSeed + 3).run();
+      this.duels += 3; this.totalDuels += 3;
       this.idx++;
       if (this.idx >= gs.length) {
         this.pop.evolve();
@@ -160,16 +162,16 @@ export function probe(genome, model) {
   // orbit direction vs player orbit
   const strafe = set(0, 0, model.orbitDir * 0.8, 0, 0, 0)[1];
   // empirical: fight 4 fixed arenas against the shadow
-  let hits = 0, shots = 0, ds = 0, dn = 0;
-  for (let s = 0; s < 4; s++) { const d = new Duel(genome, model, 9001 + s * 77); d.run(); hits += d.hitsOnGhost; shots += d.shots; ds += d.distSum; dn += d.distN; }
-  return { range: dn ? Math.round(ds / dn) : eq, acc: shots ? hits / shots : 0, dmg: hits / 4, lead, dodge, flinch, fire: fires / 10, counterOrbit: -Math.sign(strafe) === Math.sign(model.orbitDir) ? 'against' : 'with' };
+  let hits = 0, shots = 0, ds = 0, dn = 0, on = 0;
+  for (let s = 0; s < 8; s++) { const d = new Duel(genome, model, 9001 + s * 77); d.run(); hits += d.hitsOnGhost; shots += d.shots; ds += d.distSum; dn += d.distN; on += d.onTarget; }
+  return { range: dn ? Math.round(ds / dn) : eq, acc: shots ? on / shots : 0, pressure: on / 8, dmg: hits / 8, lead, dodge, flinch, fire: fires / 10, counterOrbit: -Math.sign(strafe) === Math.sign(model.orbitDir) ? 'against' : 'with' };
 }
 
 export function describeLearning(before, after, model) {
   const lines = [];
   const pct = (a, b) => (a > 0.01 ? Math.round(((b - a) / a) * 100) : Math.round(b * 100));
   const ra = Math.round(before.acc * 100), rb = Math.round(after.acc * 100);
-  lines.push(`${rb >= ra ? '▲' : '▼'} Hit rate on your shadow <b>${ra}% → ${rb}%</b>${before.acc > 0.004 && after.acc / before.acc > 1.25 ? ` <b>(${(after.acc / before.acc).toFixed(1)}×)</b>` : ''}`);
+  lines.push(`${rb >= ra ? '▲' : '▼'} Shots on target vs your shadow <b>${ra}% → ${rb}%</b>${before.acc > 0.004 && after.acc / before.acc > 1.25 ? ` <b>(${(after.acc / before.acc).toFixed(1)}×)</b>` : ''}`);
   const dl = after.lead - before.lead;
   lines.push(`${dl >= 0 ? '▲' : '▼'} Shot leading <b>${before.lead.toFixed(2)} → ${after.lead.toFixed(2)}</b>${Math.abs(dl) > 0.08 ? (dl > 0 ? ' — aiming where you WILL be' : ' — you juke too much to lead') : ''}`);
   const rn = after.range - model.prefDist;

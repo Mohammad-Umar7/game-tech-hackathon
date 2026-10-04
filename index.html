@@ -49,6 +49,7 @@
       <h1 class="logo" data-text="OVERFIT">OVERFIT</h1>
       <div class="tagline">the arena is learning <span>you</span>.</div>
       <div id="incoming" class="hidden"></div>
+      <div id="best" class="hidden"></div>
       <button id="play" class="btn big">▶ PLAY <small>ENTER</small></button>
       <div class="alt"><a href="?bot" class="btn ghost">◉ WATCH AI vs AI</a><a href="docs/overfit-demo.mp4" target="_blank" class="btn ghost">▶ TRAILER</a><a href="https://github.com/Mohammad-Umar7/game-tech-hackathon" target="_blank" class="btn ghost">&lt;/&gt; SOURCE</a></div>
       <div class="touchnote">touch mode: drag left side to move · auto-aim + auto-fire · buttons for dash / nova / scan</div>
@@ -72,19 +73,19 @@
     <div class="lab-grid">
       <section class="panel">
         <h3>01 · YOUR BEHAVIOURAL FINGERPRINT</h3>
-        <canvas id="radar" width="360" height="300"></canvas>
+        <canvas id="radar" width="360" height="270"></canvas>
         <ul id="insights"></ul>
       </section>
       <section class="panel mid">
         <h3>02 · TRAINING HUNTERS VS YOUR SHADOW <span class="live">● LIVE</span></h3>
-        <canvas id="arena" width="520" height="292"></canvas>
+        <canvas id="arena" width="520" height="262"></canvas>
         <div class="progress"><i id="lbar"></i></div>
         <div class="stats">
           <div><b id="lgen">0</b><span>GENERATION</span></div>
           <div><b id="lduels">0</b><span>DUELS SIMULATED</span></div>
           <div><b id="lfit">0</b><span>BEST FITNESS</span></div>
         </div>
-        <canvas id="fitness" width="520" height="96"></canvas>
+        <canvas id="fitness" width="520" height="78"></canvas>
       </section>
       <section class="panel">
         <h3>03 · GENE POOL <span class="dimh">32 brains · brightness = fitness</span></h3>

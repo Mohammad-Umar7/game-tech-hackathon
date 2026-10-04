@@ -42,7 +42,7 @@ export class Game {
     const q = this.spawnQ = [];
     const nh = this.boss ? Math.min(2 + Math.floor(n / 3), 6) : Math.min(3 + n, 12);
     const genomes = this.pop.sample(nh);
-    genomes.forEach((g, i) => q.push({ t: 0.6 + i * 0.75, kind: 'hunter', genome: g }));
+    genomes.forEach((g, i) => q.push({ t: 0.6 + i * 0.75, kind: 'hunter', genome: g, champion: i === 0 }));
     const nd = this.boss ? 6 + n * 2 : 8 + n * 5;
     for (let i = 0, t = 1.6; i < nd; t += 2.0) { const b = Math.min(nd - i, 4 + (n >> 1)); q.push({ t, kind: 'drones', count: b }); i += b; }
     if (this.boss) { q.push({ t: 1.4, kind: 'shadow' }); this.bossNum++; }
@@ -70,6 +70,7 @@ export class Game {
       h.fireFlash = 0;
       this.hunters.push(h);
       R.fx.ring(x, y, h.color, 120, 0.7); R.fx.flash(x, y, h.color.clone().multiplyScalar(0.4), 160, 0.5); R.grid.pull(x, y, 90, 160);
+      if (s.champion && !this.demo && this.wave > 1) this.ui.popup(x, y - 40, `◆ CHAMPION · GEN ${this.pop.generation}`, 'big');
     } else if (s.kind === 'drones') {
       const { x, y } = this.edgeSpawn(380);
       for (let i = 0; i < s.count; i++) {

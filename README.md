@@ -56,6 +56,8 @@ Everything is hand-written JavaScript: **no ML libraries, no server, no API keys
 * **Behavioural cloning, cheaply.** The player model is a small set of numbers fitted from your play (preferred range and how firmly you keep it, which way you circle and how consistently, direction changes per second, dash triggers, dodge skill, accuracy). It drives both the training opponent and the SHADOW.EXE boss.
 * **Explaining what they learned.** After training, we test the champion's network with fixed inputs and also measure it in fixed test fights against your shadow. That's how the game can say *what* it learned, not just that the fitness score went up.
 * **Out-of-distribution meter.** We compare your last few seconds of play against the model the hunters trained on. Drift far enough and they visibly lose track of you, and your score multiplier rises.
+* **Send your nemesis to a friend.** After game over, one click copies a link with your top 4 evolved brains packed into it (217 weights each, 8-bit, ~1.4 KB). Your friend's game starts with hunters that were trained against *your* shadow.
+* **QA tooling.** `tools/soak.mjs` runs the AI pilot in headless Chrome for minutes at a time, reporting waves, deaths, entity counts and any JS errors. `tools/record.mjs` turns the captioned autodemo into the trailer: headless Chrome screencast, plus the game's own WebAudio mix captured with MediaRecorder, assembled with ffmpeg.
 * **Exportable brains.** In the Lab, **⤓ EXPORT CHAMPION BRAIN** downloads the winning network as JSON (layer sizes, input/output names, weights, and the player model it was trained against), ready to drop into any engine.
 
 ### Why it matters for studios
