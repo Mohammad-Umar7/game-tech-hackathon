@@ -352,6 +352,7 @@ export class Game {
   damagePlayer() {
     const p = this.player, R = this.R;
     if (!p.alive || p.invuln > 0 || this.demo) return;
+    if (this.godmode) { p.invuln = 0.6; R.hurt(); R.fx.hit(p.x, p.y, C_PLAYER); return; }
     p.hp--; p.invuln = PLAYER.invuln;
     this.rec.damage++;
     R.hurt(); R.grid.push(p.x, p.y, 700, 300); R.fx.explode(p.x, p.y, C_PLAYER, 0.6);

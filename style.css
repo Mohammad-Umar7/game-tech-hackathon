@@ -87,7 +87,7 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); bo
 .foot { margin-top: 14px; font-size: 11px; letter-spacing: .2em; color: #5f5890; text-transform: uppercase; }
 
 /* ---------- lab ---------- */
-#lab { flex-direction: column; gap: 14px; padding: 18px; background: radial-gradient(ellipse at center, rgba(8,4,24,.82), rgba(3,2,8,.94)); backdrop-filter: blur(3px); }
+#lab { flex-direction: column; gap: 14px; padding: 18px; padding-top: 64px; background: radial-gradient(ellipse at center, rgba(8,4,24,.82), rgba(3,2,8,.94)); backdrop-filter: blur(3px); }
 .lab-head { text-align: center; }
 .lab-head .tag { font-size: 12px; letter-spacing: .4em; color: var(--pink); }
 #labtitle { font: 900 clamp(22px, 3.4vw, 40px) 'Orbitron', sans-serif; letter-spacing: .14em; color: #fff; text-shadow: 0 0 22px rgba(139,107,255,.9); margin: 4px 0; }
@@ -142,6 +142,18 @@ body.scanning #c { filter: saturate(.55) brightness(.75) hue-rotate(-12deg); }
 #ohabit { margin-bottom: 26px; font-size: 15px; color: var(--dim); }
 #ohabit b { color: var(--pink); }
 #pause .btn { margin-top: 24px; }
+
+/* ---------- autodemo captions ---------- */
+#caption { position: fixed; left: 50%; bottom: 9vh; transform: translateX(-50%); z-index: 20; max-width: 86vw; padding: 14px 28px; text-align: center;
+  font: 600 clamp(16px, 2vw, 26px) 'Chakra Petch', sans-serif; letter-spacing: .04em; color: #fff; background: rgba(6,3,20,.78); border: 1px solid var(--line);
+  box-shadow: 0 0 30px rgba(139,107,255,.35); opacity: 0; pointer-events: none; }
+#caption b { color: var(--cyan); text-shadow: 0 0 12px var(--cyan); }
+#caption.show { animation: capin .5s ease-out forwards; }
+#caption.top { bottom: auto; top: 2.2vh; font-size: clamp(14px, 1.6vw, 21px); padding: 10px 22px; }
+@keyframes capin { from { opacity: 0; transform: translate(-50%, 18px); } to { opacity: 1; transform: translate(-50%, 0); } }
+#endcard { background: radial-gradient(ellipse at center, rgba(3,2,8,.5), rgba(3,2,8,.92)); z-index: 25; }
+.endurl { margin-top: 18px; font: 700 clamp(16px, 2.2vw, 26px) 'Orbitron', sans-serif; color: var(--gold); text-shadow: 0 0 16px rgba(255,210,60,.6); letter-spacing: .06em; }
+body.autodemo #c { cursor: none; }
 
 /* ---------- touch ---------- */
 .touchnote { display: none; margin-top: 12px; font-size: 12px; color: var(--pink); letter-spacing: .1em; }

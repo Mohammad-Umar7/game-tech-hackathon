@@ -24,7 +24,9 @@ function freshAI() {
 }
 freshAI();
 
-const BOT = new URLSearchParams(location.search).has('bot');
+const AUTO = new URLSearchParams(location.search).has('autodemo');
+const BOT = AUTO || new URLSearchParams(location.search).has('bot');
+if (AUTO) document.body.classList.add('autodemo');
 let state = 'title', paused = false, scan = false, demoWave = 1;
 game.reset(true); game.startWave(1);
 
@@ -125,7 +127,7 @@ function startRun() {
   else { game.model = { ...DEFAULT_MODEL }; }
   ui.show('title', false); ui.show('over', false); ui.show('lab', false); ui.show('hud', true); ui.show('touch', TOUCH);
   game.reset(false);
-  game.autopilot = BOT;
+  game.autopilot = BOT; game.godmode = AUTO;
   game.rec.reset();
   state = 'play'; paused = false; scan = false; ui.show('brain', false);
   game.startWave(1);
@@ -214,6 +216,37 @@ function gameOver() {
   audio.stopMusic();
 }
 
+// ---------------- cinematic autodemo (for the trailer) ----------------
+let ad = { step: 0, t: 0, t0: 0 };
+function caption(html) {
+  const el = $('caption');
+  el.classList.remove('show'); void el.offsetWidth;
+  el.classList.toggle('top', state === 'lab');
+  if (html) { el.style.opacity = ''; el.innerHTML = html; el.classList.add('show'); } else el.style.opacity = 0;
+}
+function autodemo(real) {
+  ad.t += real;
+  const since = ad.t - ad.t0, next = () => { ad.step++; ad.t0 = ad.t; };
+  switch (ad.step) {
+    case 0: if (since > 4.5) { startRun(); caption('Every enemy is a <b>neural network</b>. Every move you make is being <b>recorded</b>.'); next(); } break;
+    case 1: if (since > 6 && game.hunters.some(h => h.spawnT <= 0)) { toggleScan(); caption('<b>Brain scan</b>: watch a hunter’s network fire in real time — inputs → decisions'); next(); } break;
+    case 2: if (since > 4.2) { toggleScan(); caption(''); next(); } break;
+    case 3: if (state === 'lab') { caption('Between waves it fits a <b>behavioural model of you</b>: range, orbit, jukes, aim…'); next(); } break;
+    case 4: if (since > 2.6) { caption('…then evolves its hunters through <b>~2,000 simulated duels vs your clone</b> — live, in your browser'); next(); } break;
+    case 5: if (lab && lab.done) { caption('…and explains <b>exactly what it learned</b> about you'); next(); } break;
+    case 6: if (since > 4.5) { deploy(); caption('The survivors come for you.'); next(); } break;
+    case 7: if (since > 3.5) caption(''); if (state === 'lab') { caption('Every generation gets better at beating <b>you specifically</b>'); next(); } break;
+    case 8: if (lab && lab.done && since > 3) { deploy(); caption('Every 3rd wave: <b>SHADOW.EXE</b> — a clone of your own behaviour joins the hunt'); next(); } break;
+    case 9:
+      if (since > 4) caption('');
+      if (game.shadow && since > 14) game.shadow.hp = Math.min(game.shadow.hp, 3);
+      if (since > 6 && !game.shadow && game.state !== 'wave') { caption('Beat it by being <b>unpredictable</b> — go out-of-distribution for bonus score'); next(); }
+      break;
+    case 10: if (since > 4) { caption(''); ui.show('endcard', true); ui.show('hud', false); ui.show('lab', false); next(); } break;
+    case 11: if (since > 6) { window.__demoDone = true; next(); } break;
+  }
+}
+
 // ---------------- main loop ----------------
 let last = performance.now(), overT = 0;
 function frame(now) {
@@ -226,6 +259,7 @@ function frame(now) {
   else if (game.slowmo > 0) scale = 0.3;
   const dt = real * scale;
 
+  if (AUTO) autodemo(real);
   if (state === 'title') {
     game.update(real * (game.slowmo > 0 ? 0.4 : 1), input);
     if (game.state === 'cleared') { demoWave = demoWave % 4 + 1; game.startWave(demoWave); }
