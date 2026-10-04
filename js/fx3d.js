@@ -91,9 +91,10 @@ export class FX {
   // the big one
   explode(wx, wy, col, power = 1) {
     const X = toX(wx), Z = toZ(wy);
-    const hot = new THREE.Color(col.r * 1.6 + 0.6, col.g * 1.6 + 0.6, col.b * 1.6 + 0.6);
-    this.flash(wx, wy, hot, 260 * power, 0.22);
-    this.flash(wx, wy, col, 520 * power, 0.45);
+    const hot = new THREE.Color(Math.min(2.2, col.r * 0.9 + 0.5), Math.min(2.2, col.g * 0.9 + 0.5), Math.min(2.2, col.b * 0.9 + 0.5));
+    const soft = col.clone().multiplyScalar(0.35);
+    this.flash(wx, wy, hot.clone().multiplyScalar(0.5), 110 * Math.sqrt(power), 0.16);
+    this.flash(wx, wy, soft, 230 * Math.sqrt(power), 0.35);
     this.ring(wx, wy, hot, 170 * power, 0.45);
     this.ring(wx, wy, col, 300 * power, 0.8);
     const n = Math.round(90 * power);
@@ -105,7 +106,7 @@ export class FX {
     const m = Math.round(70 * power);
     for (let i = 0; i < m; i++) {
       const a = Math.random() * Math.PI * 2, sp = Math.random() * 380 * power;
-      this.particle(X, 10 + Math.random() * 20, Z, Math.cos(a) * sp, Math.random() * 160, Math.sin(a) * sp, 0.4 + Math.random() * 0.8, 14 + Math.random() * 26 * power, Math.random() < 0.4 ? hot : col, 3.2);
+      this.particle(X, 10 + Math.random() * 20, Z, Math.cos(a) * sp, Math.random() * 160, Math.sin(a) * sp, 0.4 + Math.random() * 0.8, 7 + Math.random() * 12 * Math.sqrt(power), Math.random() < 0.4 ? hot : soft, 3.2);
     }
     // embers that rise
     for (let i = 0; i < 18 * power; i++) {
@@ -118,7 +119,7 @@ export class FX {
       const a = Math.atan2(diry, dirx) + (Math.random() - 0.5) * 1.8, sp = 250 + Math.random() * 450;
       this.spark(X, 14, Z, Math.cos(a) * sp, Math.random() * 220, Math.sin(a) * sp, 0.25 + Math.random() * 0.35, col);
     }
-    this.flash(wx, wy, col, 90, 0.12);
+    this.flash(wx, wy, col.clone().multiplyScalar(0.4), 50, 0.1);
   }
   trail(wx, wy, col, size = 10, life = 0.35, y = 8) {
     this.particle(toX(wx), y, toZ(wy), (Math.random() - 0.5) * 30, 0, (Math.random() - 0.5) * 30, life, size, col, 2);
@@ -209,8 +210,8 @@ export class Grid {
     this.mesh = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.mesh.frustumCulled = false;
     scene.add(this.mesh);
-    this.base = new THREE.Color(0.16, 0.08, 0.42);
-    this.hot = new THREE.Color(0.2, 1.4, 2.2);
+    this.base = new THREE.Color(0.11, 0.06, 0.32);
+    this.hot = new THREE.Color(0.25, 1.1, 1.8);
     this.pulse = 0;
   }
   push(wx, wy, force, radius, down = 1) {

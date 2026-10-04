@@ -22,8 +22,8 @@ export class Duel {
       this.hunters.push(newHunterState(new Brain(genome.genes), x, y));
     }
     this.gb = []; this.hb = []; // ghost bullets, hunter bullets
-    this.step = 0; this.hitsOnGhost = 0; this.hitsTaken = 0; this.alive = 0; this.closeTime = 0;
-    this.spawnH = (x, y, vx, vy) => this.hb.push({ x, y, vx, vy, life: HUNTER.bulletLife });
+    this.step = 0; this.hitsOnGhost = 0; this.hitsTaken = 0; this.alive = 0; this.closeTime = 0; this.shots = 0; this.distSum = 0; this.distN = 0;
+    this.spawnH = (x, y, vx, vy) => { this.shots++; this.hb.push({ x, y, vx, vy, life: HUNTER.bulletLife }); };
     this.events = null; // optional visual event sink
   }
   tick() {
@@ -44,6 +44,7 @@ export class Duel {
       hunterMove(h, DT, this.spawnH);
       const d = Math.hypot(h.x - g.x, h.y - g.y);
       if (d < 650) this.closeTime += DT;
+      this.distSum += d; this.distN++;
     }
     this.alive += alive;
     // ghost bullets vs hunters
@@ -158,19 +159,24 @@ export function probe(genome, model) {
   for (let d = 0; d < 10; d++) if (set(d / 5 - 1, 0, 0, 0, 0, 0)[2] > 0) fires++;
   // orbit direction vs player orbit
   const strafe = set(0, 0, model.orbitDir * 0.8, 0, 0, 0)[1];
-  return { range: eq, lead, dodge, flinch, fire: fires / 10, counterOrbit: -Math.sign(strafe) === Math.sign(model.orbitDir) ? 'against' : 'with' };
+  // empirical: fight 4 fixed arenas against the shadow
+  let hits = 0, shots = 0, ds = 0, dn = 0;
+  for (let s = 0; s < 4; s++) { const d = new Duel(genome, model, 9001 + s * 77); d.run(); hits += d.hitsOnGhost; shots += d.shots; ds += d.distSum; dn += d.distN; }
+  return { range: dn ? Math.round(ds / dn) : eq, acc: shots ? hits / shots : 0, dmg: hits / 4, lead, dodge, flinch, fire: fires / 10, counterOrbit: -Math.sign(strafe) === Math.sign(model.orbitDir) ? 'against' : 'with' };
 }
 
 export function describeLearning(before, after, model) {
   const lines = [];
   const pct = (a, b) => (a > 0.01 ? Math.round(((b - a) / a) * 100) : Math.round(b * 100));
+  const ra = Math.round(before.acc * 100), rb = Math.round(after.acc * 100);
+  lines.push(`${rb >= ra ? '▲' : '▼'} Hit rate on your shadow <b>${ra}% → ${rb}%</b>${before.acc > 0.004 && after.acc / before.acc > 1.25 ? ` <b>(${(after.acc / before.acc).toFixed(1)}×)</b>` : ''}`);
   const dl = after.lead - before.lead;
   lines.push(`${dl >= 0 ? '▲' : '▼'} Shot leading <b>${before.lead.toFixed(2)} → ${after.lead.toFixed(2)}</b>${Math.abs(dl) > 0.08 ? (dl > 0 ? ' — aiming where you WILL be' : ' — you juke too much to lead') : ''}`);
-  lines.push(`◆ Engagement range <b>${before.range}px → ${after.range}px</b>${Math.abs(after.range - model.prefDist) < 160 ? ' — matched to YOUR comfort range' : ''}`);
+  const rn = after.range - model.prefDist;
+  lines.push(`◆ Fighting range <b>${before.range}px → ${after.range}px</b> ${Math.abs(rn) < 90 ? '— right at YOUR comfort range' : rn < 0 ? '— crowding inside your comfort zone' : '— staying out of your reach'}`);
   const dd = after.dodge - before.dodge;
   lines.push(`${dd >= 0 ? '▲' : '▼'} Dodge reflex <b>${dd >= 0 ? '+' : ''}${pct(before.dodge, after.dodge)}%</b>`);
   lines.push(`◆ They now orbit <b>${after.counterOrbit.toUpperCase()}</b> your ${model.orbitDir > 0 ? 'counter-clockwise' : 'clockwise'} circle${after.counterOrbit === 'against' ? ' — cutting you off' : ' — shadowing you'}`);
   if (after.flinch > before.flinch + 0.05) lines.push(`▲ Now <b>sidesteps when you aim</b> at them`);
-  else lines.push(`◆ Trigger discipline <b>${Math.round(before.fire * 100)}% → ${Math.round(after.fire * 100)}%</b>`);
   return lines;
 }

@@ -64,7 +64,7 @@ export class Renderer {
     this.camBase = new THREE.Vector3(); this.look = new THREE.Vector3(0, 0, 30);
     this.composer = new EffectComposer(r);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(800, 450), 1.05, 0.55, 0.16);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(800, 450), 0.85, 0.42, 0.3);
     this.composer.addPass(this.bloom);
     this.post = new ShaderPass(PostShader); this.composer.addPass(this.post);
     this.composer.addPass(new OutputPass());
@@ -82,34 +82,34 @@ export class Renderer {
   _arena() {
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(W + 40, H + 40), new THREE.MeshBasicMaterial({ color: 0x05040c }));
     floor.rotation.x = -Math.PI / 2; floor.position.y = -6; this.scene.add(floor);
-    this.frameMat = new THREE.MeshBasicMaterial({ color: hdr(0.6, 0.35, 2.4) });
+    this.frameMat = new THREE.MeshBasicMaterial({ color: hdr(0.35, 0.2, 1.4) });
     const t = 5, h = 14;
     const mk = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), this.frameMat); m.position.set(x, h / 2 - 4, z); this.scene.add(m); };
     mk(W + t * 2, t, 0, -H / 2 - t / 2); mk(W + t * 2, t, 0, H / 2 + t / 2);
     mk(t, H, -W / 2 - t / 2, 0); mk(t, H, W / 2 + t / 2, 0);
     // corner pylons
     for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
-      const p = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 60, 6), new THREE.MeshBasicMaterial({ color: hdr(2.4, 0.4, 1.6) }));
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 60, 6), new THREE.MeshBasicMaterial({ color: hdr(1.4, 0.25, 1.0) }));
       p.position.set(x * (W / 2 + 4), 26, z * (H / 2 + 4)); this.scene.add(p);
     }
   }
   _stars() {
-    const n = 2500, pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+    const n = 1400, pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, rr = 900 + Math.random() * 3500;
       pos[i * 3] = Math.cos(a) * rr; pos[i * 3 + 1] = -200 - Math.random() * 2600; pos[i * 3 + 2] = Math.sin(a) * rr * 0.8 - 600;
-      const c = hsl(200 + Math.random() * 120, 0.8, 0.7, 0.5 + Math.random() * 1.2);
+      const c = hsl(200 + Math.random() * 120, 0.8, 0.7, 0.15 + Math.random() * 0.45);
       col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    this.stars = new THREE.Points(g, new THREE.PointsMaterial({ size: 3, vertexColors: true, sizeAttenuation: false, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    this.stars = new THREE.Points(g, new THREE.PointsMaterial({ size: 2, vertexColors: true, sizeAttenuation: false, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
     this.scene.add(this.stars);
   }
   _bullets() {
     const MAX = 700;
-    const pg = new THREE.BoxGeometry(26, 4, 4);
-    this.pBul = new THREE.InstancedMesh(pg, new THREE.MeshBasicMaterial({ color: hdr(3.2, 2.6, 1.0) }), MAX);
+    const pg = new THREE.BoxGeometry(24, 2.6, 2.6);
+    this.pBul = new THREE.InstancedMesh(pg, new THREE.MeshBasicMaterial({ color: hdr(2.2, 1.9, 0.8) }), MAX);
     const eg = new THREE.IcosahedronGeometry(7, 1);
     this.eBul = new THREE.InstancedMesh(eg, new THREE.MeshBasicMaterial({ color: hdr(3.4, 0.35, 1.5) }), MAX);
     const sg = new THREE.IcosahedronGeometry(10, 1);
@@ -148,8 +148,8 @@ export class Renderer {
   }
   makePlayer() {
     const g = this._ship(extrude(PLAYER_SHAPE, 8), hdr(0.05, 0.55, 0.7), hdr(0.7, 3.2, 3.6));
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: hdr(0.2, 1.6, 2.2), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-    glow.scale.setScalar(110); glow.position.y = 4; g.add(glow);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: hdr(0.08, 0.6, 0.9), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+    glow.scale.setScalar(64); glow.position.y = 4; g.add(glow);
     const shield = new THREE.Mesh(new THREE.RingGeometry(30, 33, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: hdr(0.4, 2.5, 3), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
     shield.position.y = 4; shield.visible = false; g.add(shield);
     g.userData.glow = glow; g.userData.shield = shield;
@@ -157,8 +157,8 @@ export class Renderer {
   }
   makeHunter(ph) {
     const g = this._ship(extrude(starShape(ph.spikes, ph.inner), 9), hsl(ph.hue, 1, 0.5, 0.35), hsl(ph.hue, 1, 0.6, 2.8));
-    const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: hsl(ph.hue, 1, 0.6, 1.6), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-    core.scale.setScalar(80); core.position.y = 6; g.add(core);
+    const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: hsl(ph.hue, 1, 0.6, 0.8), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+    core.scale.setScalar(44); core.position.y = 6; g.add(core);
     g.userData.core = core; g.userData.color = hsl(ph.hue, 1, 0.6, 1.5);
     return g;
   }
@@ -171,8 +171,8 @@ export class Renderer {
   makeShadow() {
     const g = this._ship(extrude(PLAYER_SHAPE, 10), hdr(0.12, 0.0, 0.02), hdr(3.6, 0.15, 0.3));
     g.scale.setScalar(2.4);
-    const aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: hdr(1.6, 0.05, 0.15), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-    aura.scale.setScalar(130); aura.position.y = 2; g.add(aura);
+    const aura = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW_TEX, color: hdr(0.9, 0.03, 0.08), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+    aura.scale.setScalar(70); aura.position.y = 2; g.add(aura);
     g.userData.color = hdr(3, 0.15, 0.25);
     return g;
   }
@@ -259,7 +259,8 @@ export class Renderer {
     this.stars.rotation.y += dt * 0.006;
     const pu = this.post.uniforms;
     pu.uAberr.value = this.aberr; pu.uDamage.value = this.damage; pu.uTime.value = t; pu.uWarp.value = this.warp;
-    this.frameMat.color.setRGB(0.6 + this.grid.pulse * 2, 0.35 + this.grid.pulse, 2.4 + this.grid.pulse);
+    this.frameMat.color.setRGB(0.35 + this.grid.pulse * 1.2, 0.2 + this.grid.pulse * 0.8, 1.4 + this.grid.pulse * 0.6);
+    this.warp = Math.min(this.warp, 0.45);
   }
   render() { this.composer.render(); }
 }

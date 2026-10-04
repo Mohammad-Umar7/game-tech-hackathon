@@ -69,7 +69,7 @@ export class Game {
       h.genome = s.genome; h.spawnT = 0.8; h.mesh = R.makeHunter(s.genome.pheno); h.color = h.mesh.userData.color;
       h.fireFlash = 0;
       this.hunters.push(h);
-      R.fx.ring(x, y, h.color, 120, 0.7); R.fx.flash(x, y, h.color, 260, 0.5); R.grid.pull(x, y, 90, 160);
+      R.fx.ring(x, y, h.color, 120, 0.7); R.fx.flash(x, y, h.color.clone().multiplyScalar(0.4), 160, 0.5); R.grid.pull(x, y, 90, 160);
     } else if (s.kind === 'drones') {
       const { x, y } = this.edgeSpawn(380);
       for (let i = 0; i < s.count; i++) {
@@ -83,7 +83,7 @@ export class Game {
       const hp = 70 + 25 * (this.bossNum - 1);
       const sh = this.shadow = { x, y, vx: 0, vy: 0, ax: 1, ay: 0, hp, maxHp: hp, dashT: 0, dashCD: 1, fireCD: 1.5, burstCD: 4, spawnT: 1.6, cmd: { mx: 0, my: 0, aimx: 1, aimy: 0, fire: false, dash: false }, rng: Math.random, trailT: 0 };
       sh.mesh = R.makeShadow();
-      R.fx.ring(x, y, hdr(3, 0.1, 0.2), 400, 1.2); R.fx.flash(x, y, hdr(3, 0.1, 0.2), 800, 0.9);
+      R.fx.ring(x, y, hdr(3, 0.1, 0.2), 400, 1.2); R.fx.flash(x, y, hdr(1, 0.03, 0.06), 500, 0.9);
       R.grid.pull(x, y, 400, 420); R.kick(1); R.shake(0.5); R.warp = 0.5;
       if (!this.demo) { this.audio.glitch(); this.ui.bossIntro(this.model); }
     }
@@ -100,9 +100,9 @@ export class Game {
     // --- player control ---
     if (p.alive) {
       const c = p.cmd;
-      if (this.demo) {
+      if (this.demo || this.autopilot) {
         ghostThink(p, DEMO_MODEL, [...this.hunters.filter(h => h.spawnT <= 0), ...this.drones, ...(this.shadow ? [this.shadow] : [])], this.eb, dt, Math.random);
-        p.invuln = 1;
+        if (this.demo) p.invuln = 1; else if (Math.random() < dt * 0.15) this.nova();
       } else {
         c.mx = input.mx; c.my = input.my;
         const ax = input.wx - p.x, ay = input.wy - p.y, al = Math.hypot(ax, ay);
@@ -360,7 +360,7 @@ export class Game {
     p.novas--;
     this.novaFx = { x: p.x, y: p.y, r: 0, max: 560, hit: new Set() };
     R.fx.ring(p.x, p.y, hdr(1.2, 2.4, 4), 560, 0.7); R.fx.ring(p.x, p.y, hdr(3, 3, 3), 400, 0.45);
-    R.fx.flash(p.x, p.y, hdr(1, 2, 3.5), 1400, 0.5); R.grid.push(p.x, p.y, 1800, 620);
+    R.fx.flash(p.x, p.y, hdr(0.3, 0.6, 1.2), 700, 0.45); R.grid.push(p.x, p.y, 1800, 620);
     R.shake(0.7); R.kick(0.8); R.warp = 0.7; this.audio.nova(); this.hitstop = 0.06;
     p.invuln = Math.max(p.invuln, 0.6);
   }
@@ -389,7 +389,7 @@ export class Game {
       R.place(h.mesh, h.x, h.y, h.heading, 10 + (h.spawnT > 0 ? h.spawnT * 160 : 0));
       h.mesh.scale.setScalar(0.2 + 0.8 * s);
       h.mesh.rotation.z = Math.sin(t * 3 + h.x) * 0.15;
-      h.mesh.userData.core.scale.setScalar(70 + h.fireFlash * 90 + (this.scan === h ? 60 + Math.sin(t * 20) * 20 : 0));
+      h.mesh.userData.core.scale.setScalar(40 + h.fireFlash * 50 + (this.scan === h ? 50 + Math.sin(t * 20) * 16 : 0));
     }
     for (const d of this.drones) {
       R.place(d.mesh, d.x, d.y, d.spin, 12 + (d.spawnT > 0 ? d.spawnT * 200 : 0));

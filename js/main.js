@@ -24,6 +24,7 @@ function freshAI() {
 }
 freshAI();
 
+const BOT = new URLSearchParams(location.search).has('bot');
 let state = 'title', paused = false, scan = false, demoWave = 1;
 game.reset(true); game.startWave(1);
 
@@ -79,6 +80,7 @@ function startRun() {
   else { game.model = { ...DEFAULT_MODEL }; }
   ui.show('title', false); ui.show('over', false); ui.show('lab', false); ui.show('hud', true);
   game.reset(false);
+  game.autopilot = BOT;
   game.rec.reset();
   state = 'play'; paused = false; scan = false; ui.show('brain', false);
   game.startWave(1);
