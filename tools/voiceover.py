@@ -66,10 +66,12 @@ def build(base):
     inputs, filt = ['-i', base], []
     for k, (i, start, d, text) in enumerate(sched):
         inputs += ['-i', os.path.join(VO, f'{i:02d}.mp3')]
-        filt.append(f'[{k + 1}:a]adelay={int(start * 1000)}|{int(start * 1000)},volume=1.7[v{k}]')
+        filt.append(f'[{k + 1}:a]aresample=48000,adelay={int(start * 1000)}|{int(start * 1000)},volume=1.7[v{k}]')
     vo = ''.join(f'[v{k}]' for k in range(len(sched)))
     filt.append(f'{vo}amix=inputs={len(sched)}:normalize=0[vo]')
-    filt.append(f'[0:a]apad=pad_dur={pad:.2f},volume=0.42[g]')
+    # the recorded game audio starts a few seconds into the file: re-anchor it at t=0 so the
+    # mix (and every adelay'd voice line) lines up with the video instead of inheriting that offset
+    filt.append(f'[0:a]aresample=async=1:first_pts=0,apad=pad_dur={pad:.2f},volume=0.42[g]')
     filt.append('[g][vo]amix=inputs=2:normalize=0,alimiter=limit=0.95[a]')
     style = "FontName=Segoe UI Semibold,FontSize=15,PrimaryColour=&H00FFFFFF,OutlineColour=&H00180818,BackColour=&H90000000,BorderStyle=1,Outline=2.2,Shadow=1,MarginV=26"
     filt.append(f"[0:v]tpad=stop_mode=clone:stop_duration={pad:.2f},subtitles=subs.srt:force_style='{style}'[v]")
