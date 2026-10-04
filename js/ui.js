@@ -14,16 +14,25 @@ export class UI {
     for (let i = 0; i < 40; i++) { const d = document.createElement('div'); d.className = 'popup'; host.appendChild(d); this.pop.push(d); }
     this.pi = 0;
     this.bannerT = null;
-    this.hpCache = ''; this.novaCache = '';
+    this.hpCache = ''; this.novaCache = ''; this.cache = {};
+    this.touch = document.body.classList.contains('touch');
   }
+  txt(id, v) { if (this.cache[id] !== v) { this.cache[id] = v; $(id).textContent = v; } }
+  css(id, prop, v) { const k = id + prop; if (this.cache[k] !== v) { this.cache[k] = v; $(id).style[prop] = v; } }
   show(id, on = true) { $(id).classList.toggle('hidden', !on); }
 
   popup(x, y, text, cls = '') {
+    if (this.touch && !cls) return; // phones: skip the small score popups, keep the important ones
     const s = this.R.worldToScreen(x, y, 30);
     const d = this.pop[this.pi]; this.pi = (this.pi + 1) % this.pop.length;
-    d.className = 'popup'; void d.offsetWidth;
-    d.textContent = text; d.style.left = s.x + 'px'; d.style.top = s.y + 'px';
-    d.className = 'popup show ' + cls;
+    d.textContent = text; d.className = 'popup ' + cls;
+    d.style.left = s.x + 'px'; d.style.top = s.y + 'px';
+    if (d.anim) d.anim.cancel();
+    d.anim = d.animate([
+      { opacity: 0, transform: 'translate(-50%, -30%) scale(.6)' },
+      { opacity: 1, transform: 'translate(-50%, -60%) scale(1.15)', offset: 0.15 },
+      { opacity: 0, transform: 'translate(-50%, -190%) scale(1)' },
+    ], { duration: 900, easing: 'ease-out' });
   }
   banner(title, sub = '', cls = '') {
     const b = $('banner');
@@ -42,11 +51,11 @@ export class UI {
   }
 
   hud(g, pop, trainer) {
-    $('score').textContent = fmt(g.score);
-    $('mult').textContent = `×${g.mult}`;
+    this.txt('score', fmt(g.score));
+    this.txt('mult', `×${g.mult}`);
     $('mult').classList.toggle('hot', g.mult >= 4);
-    $('wave').textContent = g.boss ? `WAVE ${g.wave} · SHADOW` : `WAVE ${g.wave}`;
-    $('gen').textContent = `AI GEN ${pop.generation} · ${fmt(trainer.totalDuels)} DUELS SIMULATED`;
+    this.txt('wave', g.boss ? `WAVE ${g.wave} · SHADOW` : `WAVE ${g.wave}`);
+    this.txt('gen', `AI GEN ${pop.generation} · ${fmt(trainer.totalDuels)} DUELS SIMULATED`);
     const left = g.hunters.length + (g.spawnQ || []).filter(s => s.kind === 'hunter').length;
     const lt = g.state !== 'wave' ? 'WAVE CLEARED' : g.shadow || (g.spawnQ || []).some(s => s.kind === 'shadow') ? `KILL YOUR <b>SHADOW</b>${left ? ` + <b>${left}</b> HUNTERS` : ''}` : `◆ <b>${left}</b> HUNTER${left === 1 ? '' : 'S'} LEFT`;
     if (lt !== this.leftCache) { this.leftCache = lt; $('left').innerHTML = lt; }
@@ -57,14 +66,14 @@ export class UI {
       $('hp').innerHTML = Array.from({ length: p.maxHp }, (_, i) => `<i class="${i < p.hp ? 'on' : ''}"></i>`).join('');
     }
     const nv = String(p.novas);
-    if (nv !== this.novaCache) { this.novaCache = nv; $('novas').innerHTML = Array.from({ length: 3 }, (_, i) => `<i class="${i < p.novas ? 'on' : ''}"></i>`).join('') + '<span>NOVA [E]</span>'; }
+    if (nv !== this.novaCache) { this.novaCache = nv; $('novas').innerHTML = Array.from({ length: 3 }, (_, i) => `<i class="${i < p.novas ? 'on' : ''}"></i>`).join('') + (document.body.classList.contains('touch') ? '<span>NOVA</span>' : '<span>NOVA [E]</span>'); }
     const o = g.ood;
-    $('oodbar').style.width = `${Math.round(o * 100)}%`;
-    $('oodtxt').textContent = o > 0.66 ? `OUT OF DISTRIBUTION · SCORE ×${(1 + o).toFixed(1)}` : o > 0.33 ? `DRIFTING · SCORE ×${(1 + o).toFixed(1)}` : 'PREDICTABLE · they expect this';
+    this.css('oodbar', 'width', `${Math.round(o * 50) * 2}%`);
+    this.txt('oodtxt', o > 0.66 ? `OUT OF DISTRIBUTION · SCORE ×${(1 + o).toFixed(1)}` : o > 0.33 ? `DRIFTING · SCORE ×${(1 + o).toFixed(1)}` : 'PREDICTABLE · they expect this');
     $('ood').classList.toggle('hot', o > 0.66);
     if (g.shadow && g.shadow.spawnT <= 0) {
       this.show('bossbar', true);
-      $('bossfill').style.width = `${Math.max(0, g.shadow.hp / g.shadow.maxHp) * 100}%`;
+      this.css('bossfill', 'width', `${Math.round(Math.max(0, g.shadow.hp / g.shadow.maxHp) * 100)}%`);
     } else this.show('bossbar', false);
   }
 

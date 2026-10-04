@@ -61,7 +61,9 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); bo
 @keyframes banner { 0% { opacity: 0; transform: scale(1.6); filter: blur(10px); } 12% { opacity: 1; transform: scale(1); filter: blur(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: scale(.96); } }
 
 /* ---------- overlays ---------- */
-.overlay { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; }
+.overlay { position: fixed; inset: 0; z-index: 10; display: flex; align-items: flex-start; justify-content: flex-start; }
+.overlay > .title-inner, .overlay > .over-inner, .overlay > .vs-inner { margin: auto; }
+#lab { align-items: center; }
 #title { background: radial-gradient(ellipse at center, rgba(3,2,8,.15) 0%, rgba(3,2,8,.78) 75%); }
 .title-inner, .over-inner { text-align: center; max-width: 980px; padding: 24px; }
 .kicker { font-size: 12px; letter-spacing: .35em; color: var(--pink); margin-bottom: 10px; }
@@ -184,8 +186,8 @@ body.touch .controls, body.touch .hud-br { display: none; }
 #tnova { border-color: #7aa8ff; } #tscan { border-color: var(--pink); }
 .overlay { overflow-y: auto; }
 
-@media (max-width: 1000px) {
-  .lab-grid { grid-template-columns: 1fr; overflow-y: auto; max-height: 70vh; }
+@media (max-width: 760px) {
+  .lab-grid { grid-template-columns: 1fr; }
   .how { grid-template-columns: 1fr; }
   #brain { width: 92vw; right: 4vw; }
   .hud-br { display: none; }
@@ -200,3 +202,71 @@ body.touch .controls, body.touch .hud-br { display: none; }
   .hud-bl { width: 52vw; left: 12px; } .hud-bl .lbl em { display: none; }
 }
 @media (max-height: 560px) { .how, .foot { display: none; } .tagline { margin-bottom: 16px; } .lab-grid { max-height: 62vh; overflow-y: auto; } }
+
+/* =================== PHONES =================== */
+body.touch .hud-bl { top: 66px; bottom: auto; left: 12px; width: 132px; }
+body.touch .hud-bl .lbl { display: none; }
+body.touch .hud-bl .bar { height: 6px; }
+body.touch #oodtxt { font-size: 9px; letter-spacing: .06em; margin-top: 4px; line-height: 1.3; }
+body.touch #caption { font-size: 14px; padding: 9px 16px; bottom: auto; top: 128px; max-width: 92vw; }
+body.touch .popup { font-size: 12px; } body.touch .popup.big { font-size: 15px; }
+body.touch #brain { top: 128px; bottom: auto; transform: none; right: 3vw; width: 94vw; padding: 8px; }
+body.touch #brain canvas { width: auto; max-width: 100%; max-height: 27vh; margin: 0 auto; }
+body.touch #brain .bh span { display: none; }
+body.touch #braininfo { font-size: 10px; }
+
+/* portrait phones */
+@media (max-width: 600px) {
+  #banner h1 { font-size: 30px; letter-spacing: .08em; } #banner p { font-size: 11px; letter-spacing: .18em; }
+  .bi-title { font-size: 44px; } .bi-sub { font-size: 11px; } .bi-fp { font-size: 10px; }
+  #lab { padding: 54px 10px 12px; gap: 8px; }
+  #labtitle { font-size: 20px; } #labsub { font-size: 9px; letter-spacing: .1em; }
+  .panel { padding: 10px 12px; } .panel h3 { font-size: 10px; margin-bottom: 6px; }
+  #radar { width: auto; max-width: 100%; max-height: 24vh; margin: 0 auto; }
+  #insights li { font-size: 11px; padding: 3px 0; } #insights li:nth-child(n+4) { display: none; }
+  #fitness, #pool, .poolh { display: none !important; }
+  .stats b { font-size: 18px; } .stats span { font-size: 8px; }
+  #learned li { font-size: 12px; padding: 4px 0; }
+  #deploy { position: sticky; bottom: 8px; font-size: 15px; padding: 12px 22px; background: linear-gradient(90deg, #0b2e3c, #1c1450); box-shadow: 0 0 30px rgba(60,240,255,.45), 0 10px 30px rgba(0,0,0,.8); }
+  .lab-grid { padding-bottom: 12px; }
+  .over-inner { padding: 16px 10px; }
+  #ostats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 16px 0 12px; }
+  #ostats div { padding: 9px 4px; } #ostats b { font-size: 18px; } #ostats span { font-size: 8px; letter-spacing: .08em; }
+  #ohabit { font-size: 12px; margin-bottom: 12px; }
+  #curve { height: 74px; gap: 6px; } #curve div { width: 36px; } #curve .cl { font-size: 9px; }
+  .btn.big { font-size: 17px; padding: 14px 30px; }
+  .how div { padding: 10px 12px; font-size: 12px; }
+}
+
+/* landscape phones (short screens) */
+@media (max-height: 500px) {
+  .kicker { font-size: 9px; margin-bottom: 4px; }
+  .logo { font-size: 64px; } .logo.small { font-size: 34px; }
+  .tagline { margin: 4px 0 12px; font-size: 13px; }
+  .how, .foot, .controls { display: none; }
+  .btn.big { font-size: 15px; padding: 11px 26px; }
+  .alt { margin-top: 8px; }
+  #banner { top: 30%; } #banner h1 { font-size: 30px; } #banner p { font-size: 11px; }
+  .bi-title { font-size: 40px; } .bi-fp { display: none; }
+  #lab { padding: 8px 12px; gap: 6px; }
+  .lab-head .tag, #labsub { display: none; }
+  #labtitle { font-size: 18px; margin: 0; }
+  .lab-grid { grid-template-columns: 0.85fr 1.25fr 1fr; gap: 8px; }
+  .panel { padding: 8px 10px; } .panel h3 { font-size: 9px; margin-bottom: 4px; }
+  #radar { width: auto; max-width: 100%; max-height: 32vh; margin: 0 auto; }
+  #insights li { font-size: 10px; padding: 2px 0; } #insights li:nth-child(n+3) { display: none; }
+  #arena { width: auto; max-width: 100%; max-height: 34vh; margin: 0 auto; }
+  #fitness, #pool, .poolh, #champ, #export { display: none !important; }
+  .progress { margin: 4px 0; } .stats { margin: 2px 0; } .stats b { font-size: 15px; } .stats span { font-size: 7px; }
+  #learned { margin-top: 0; } #learned li { font-size: 10.5px; padding: 3px 0; line-height: 1.3; }
+  #deploy { font-size: 13px; padding: 9px 20px; margin-top: 0; }
+  .over-inner { padding: 10px; }
+  #ostats { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin: 10px 0 8px; }
+  #ostats div { padding: 6px 4px; } #ostats b { font-size: 16px; } #ostats span { font-size: 7px; letter-spacing: .06em; }
+  #ohabit { font-size: 11px; margin-bottom: 6px; }
+  #curve { height: 58px; margin-bottom: 8px; } #curve div { width: 34px; font-size: 9px; }
+  body.touch .hud-bl { top: auto; bottom: 12px; left: 12px; }
+  body.touch #caption { top: 70px; }
+  body.touch #brain { top: 64px; width: 46vw; right: 2vw; } body.touch #brain canvas { max-height: 46vh; }
+  .tbtns { bottom: 10px; right: 10px; gap: 8px; } .tbtns button { width: 54px; height: 54px; font-size: 9px; }
+}

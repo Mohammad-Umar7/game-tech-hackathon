@@ -20,8 +20,9 @@ export const GLOW_TEX = glowTexture();
 export class FX {
   constructor(scene) {
     this.scene = scene;
+    const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
     // ---- glow particles ----
-    const N = this.N = 7000;
+    const N = this.N = coarse ? 3500 : 7000;
     this.p = { x: new Float32Array(N), y: new Float32Array(N), z: new Float32Array(N), vx: new Float32Array(N), vy: new Float32Array(N), vz: new Float32Array(N), life: new Float32Array(N), max: new Float32Array(N), size: new Float32Array(N), r: new Float32Array(N), g: new Float32Array(N), b: new Float32Array(N), drag: new Float32Array(N), grav: new Float32Array(N) };
     this.pi = 0;
     const geo = new THREE.BufferGeometry();
@@ -39,7 +40,7 @@ export class FX {
     this.points = new THREE.Points(geo, mat); this.points.frustumCulled = false; scene.add(this.points);
 
     // ---- streak sparks ----
-    const S = this.S = 3000;
+    const S = this.S = coarse ? 1500 : 3000;
     this.s = { x: new Float32Array(S), y: new Float32Array(S), z: new Float32Array(S), vx: new Float32Array(S), vy: new Float32Array(S), vz: new Float32Array(S), life: new Float32Array(S), max: new Float32Array(S), r: new Float32Array(S), g: new Float32Array(S), b: new Float32Array(S) };
     this.si = 0;
     const sg = new THREE.BufferGeometry();

@@ -159,9 +159,9 @@ function startRun() {
   state = 'play'; paused = false; scan = false; ui.show('brain', false);
   game.startWave(1);
   if (!BOT) {
-    caption(TOUCH ? 'Drag left side to <b>move</b> · aiming + firing are <b>automatic</b> · tap <b>DASH</b> through bullets'
+    caption(TOUCH ? 'Drag to <b>move</b> · firing is <b>automatic</b> · <b>DASH</b> through bullets'
                   : '<b>WASD</b> move · <b>MOUSE</b> aim · <b>HOLD CLICK</b> fire · <b>SHIFT</b> dash · <b>E</b> nova · <b>B</b> brain scan');
-    clearTimeout(hintT); hintT = setTimeout(() => caption(''), 6500);
+    clearTimeout(hintT); hintT = setTimeout(() => caption(''), TOUCH ? 4500 : 6500);
   }
 }
 
@@ -197,7 +197,7 @@ function newFeatured() {
 }
 function updateLab(dt) {
   lab.t += dt;
-  if (lab.t > 0.6 && trainer.running) trainer.update(6);
+  if (lab.t > 0.6 && trainer.running) trainer.update(TOUCH ? 4 : 6);
   if (pop.generation !== lab.lastGen) { lab.lastGen = pop.generation; audio.tick(trainer.progress); }
   if (lab.t > 0.9) $('labtitle').textContent = trainer.running ? 'EVOLVING COUNTER-STRATEGIES' : 'HUNTERS READY';
   // featured duel at 2× speed

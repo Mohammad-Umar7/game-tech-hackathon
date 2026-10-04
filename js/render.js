@@ -178,9 +178,16 @@ export class Renderer {
     return g;
   }
   makeDrone() {
-    const geo = new THREE.OctahedronGeometry(12, 0);
-    const g = this._ship(geo, hdr(0.15, 0.6, 0.05), hdr(1.2, 3.2, 0.5));
-    g.userData.color = hdr(0.9, 2.4, 0.4);
+    if (!this.droneRes) {
+      const geo = new THREE.OctahedronGeometry(12, 0);
+      this.droneRes = { geo, edges: new THREE.EdgesGeometry(geo, 20), body: new THREE.MeshBasicMaterial({ color: hdr(0.15, 0.6, 0.05), transparent: true }),
+        edge: new THREE.LineBasicMaterial({ color: hdr(1.2, 3.2, 0.5), transparent: true }), color: hdr(0.9, 2.4, 0.4) };
+    }
+    const r = this.droneRes, g = new THREE.Group();
+    const m = new THREE.Mesh(r.geo, r.body), e = new THREE.LineSegments(r.edges, r.edge);
+    g.add(m); g.add(e);
+    g.userData = { body: m, edge: e, color: r.color, shared: true };
+    this.scene.add(g);
     return g;
   }
   makeShadow() {
@@ -200,17 +207,21 @@ export class Renderer {
     return g;
   }
   ghostCopy(src, color, life = 0.4) {
-    // afterimage for dashes / the shadow
+    // afterimage for dashes / the shadow — pooled, zero allocations in the hot path
+    const list = (this.afterimages ||= []), free = (this.afterFree ||= []);
+    if (list.length > 70) return;
     const geo = src.userData.body.geometry;
-    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    let m = free.pop();
+    if (!m) { m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); this.scene.add(m); }
+    m.geometry = geo; m.material.color.copy(color); m.material.opacity = 0.5; m.visible = true;
     m.position.copy(src.position); m.rotation.copy(src.rotation); m.scale.copy(src.scale);
     m.userData = { life, max: life };
-    this.scene.add(m);
-    (this.afterimages ||= []).push(m);
+    list.push(m);
   }
   remove(obj) {
     if (!obj) return;
     this.scene.remove(obj);
+    if (obj.userData.shared) return; // shared geometry/materials stay alive
     obj.traverse(o => { if (o.geometry && !o.isSprite) o.geometry.dispose(); if (o.material) o.material.dispose(); });
   }
   place(obj, x, y, heading = 0, h = 10) {
@@ -268,7 +279,7 @@ export class Renderer {
     if (this.afterimages) {
       for (let i = this.afterimages.length - 1; i >= 0; i--) {
         const m = this.afterimages[i]; m.userData.life -= dt;
-        if (m.userData.life <= 0) { this.scene.remove(m); m.material.dispose(); this.afterimages.splice(i, 1); }
+        if (m.userData.life <= 0) { m.visible = false; this.afterFree.push(m); this.afterimages.splice(i, 1); }
         else m.material.opacity = 0.5 * m.userData.life / m.userData.max;
       }
     }
