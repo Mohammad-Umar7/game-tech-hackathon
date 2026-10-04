@@ -62,6 +62,7 @@ export class FX {
       sp.visible = false; sp.userData = { life: 0 }; scene.add(sp); this.flashes.push(sp);
     }
     this.ri = 0; this.fi = 0;
+    this.q = window.matchMedia && matchMedia('(pointer: coarse)').matches ? 0.5 : 1; // particle budget
   }
 
   particle(x, y, z, vx, vy, vz, life, size, col, drag = 2.5, grav = 0) {
@@ -97,19 +98,19 @@ export class FX {
     this.flash(wx, wy, soft, 230 * Math.sqrt(power), 0.35);
     this.ring(wx, wy, hot, 170 * power, 0.45);
     this.ring(wx, wy, col, 300 * power, 0.8);
-    const n = Math.round(90 * power);
+    const n = Math.round(90 * power * this.q);
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2, sp = (200 + Math.random() * 700) * power;
       const up = Math.random() * 500 * power;
       this.spark(X, 12, Z, Math.cos(a) * sp, up, Math.sin(a) * sp, 0.5 + Math.random() * 0.9, Math.random() < 0.3 ? hot : col);
     }
-    const m = Math.round(70 * power);
+    const m = Math.round(70 * power * this.q);
     for (let i = 0; i < m; i++) {
       const a = Math.random() * Math.PI * 2, sp = Math.random() * 380 * power;
       this.particle(X, 10 + Math.random() * 20, Z, Math.cos(a) * sp, Math.random() * 160, Math.sin(a) * sp, 0.4 + Math.random() * 0.8, 7 + Math.random() * 12 * Math.sqrt(power), Math.random() < 0.4 ? hot : soft, 3.2);
     }
     // embers that rise
-    for (let i = 0; i < 18 * power; i++) {
+    for (let i = 0; i < 18 * power * this.q; i++) {
       this.particle(X + (Math.random() - 0.5) * 60, 10, Z + (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 80 + Math.random() * 180, (Math.random() - 0.5) * 60, 1.2 + Math.random(), 6 + Math.random() * 6, col, 0.8, -40);
     }
   }

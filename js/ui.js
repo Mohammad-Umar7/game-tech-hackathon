@@ -47,6 +47,9 @@ export class UI {
     $('mult').classList.toggle('hot', g.mult >= 4);
     $('wave').textContent = g.boss ? `WAVE ${g.wave} · SHADOW` : `WAVE ${g.wave}`;
     $('gen').textContent = `AI GEN ${pop.generation} · ${fmt(trainer.totalDuels)} DUELS SIMULATED`;
+    const left = g.hunters.length + (g.spawnQ || []).filter(s => s.kind === 'hunter').length;
+    const lt = g.state !== 'wave' ? 'WAVE CLEARED' : g.shadow || (g.spawnQ || []).some(s => s.kind === 'shadow') ? `KILL YOUR <b>SHADOW</b>${left ? ` + <b>${left}</b> HUNTERS` : ''}` : `◆ <b>${left}</b> HUNTER${left === 1 ? '' : 'S'} LEFT`;
+    if (lt !== this.leftCache) { this.leftCache = lt; $('left').innerHTML = lt; }
     const p = g.player;
     const hp = `${p.hp}/${p.maxHp}`;
     if (hp !== this.hpCache) {

@@ -21,6 +21,8 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); bo
 #mult.hot { color: #ff7b3c; transform: scale(1.25); transform-origin: left; text-shadow: 0 0 18px #ff5a2a; }
 .hud-tc { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); text-align: center; }
 #wave { font: 900 22px 'Orbitron', sans-serif; letter-spacing: .25em; color: #fff; text-shadow: 0 0 16px rgba(139,107,255,.9); }
+#left { margin-top: 6px; font: 700 13px 'Orbitron', sans-serif; letter-spacing: .2em; color: #fff; text-shadow: 0 0 10px rgba(255,63,164,.8); }
+#left b { color: var(--gold); }
 #gen { margin-top: 4px; font-size: 12px; letter-spacing: .18em; color: var(--pink); text-shadow: 0 0 10px rgba(255,63,164,.6); }
 .hud-tr { position: absolute; top: 20px; right: 24px; text-align: right; }
 #hp i, #novas i { display: inline-block; width: 22px; height: 10px; margin-left: 5px; transform: skewX(-20deg); border: 1px solid rgba(60,240,255,.5); }

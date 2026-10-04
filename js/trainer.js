@@ -132,7 +132,7 @@ export class Trainer {
 }
 
 // ---- Behavioural probes: ask a brain questions to explain what it learned ----
-export function probe(genome, model) {
+export function probe(genome, model, nDuels = 8) {
   const b = new Brain(genome.genes);
   const set = (range, tvr, tvt, aim, thr, side) => {
     b.in.fill(0);
@@ -163,8 +163,8 @@ export function probe(genome, model) {
   const strafe = set(0, 0, model.orbitDir * 0.8, 0, 0, 0)[1];
   // empirical: fight 4 fixed arenas against the shadow
   let hits = 0, shots = 0, ds = 0, dn = 0, on = 0;
-  for (let s = 0; s < 8; s++) { const d = new Duel(genome, model, 9001 + s * 77); d.run(); hits += d.hitsOnGhost; shots += d.shots; ds += d.distSum; dn += d.distN; on += d.onTarget; }
-  return { range: dn ? Math.round(ds / dn) : eq, acc: shots ? on / shots : 0, pressure: on / 8, dmg: hits / 8, lead, dodge, flinch, fire: fires / 10, counterOrbit: -Math.sign(strafe) === Math.sign(model.orbitDir) ? 'against' : 'with' };
+  for (let s = 0; s < nDuels; s++) { const d = new Duel(genome, model, 9001 + s * 77); d.run(); hits += d.hitsOnGhost; shots += d.shots; ds += d.distSum; dn += d.distN; on += d.onTarget; }
+  return { range: dn ? Math.round(ds / dn) : eq, acc: shots ? on / shots : 0, pressure: on / nDuels, dmg: hits / nDuels, lead, dodge, flinch, fire: fires / 10, counterOrbit: -Math.sign(strafe) === Math.sign(model.orbitDir) ? 'against' : 'with' };
 }
 
 export function describeLearning(before, after, model) {

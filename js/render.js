@@ -159,7 +159,15 @@ export class Renderer {
     glow.scale.setScalar(64); glow.position.y = 4; g.add(glow);
     const shield = new THREE.Mesh(new THREE.RingGeometry(30, 33, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: hdr(0.4, 2.5, 3), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
     shield.position.y = 4; shield.visible = false; g.add(shield);
-    g.userData.glow = glow; g.userData.shield = shield;
+    // "YOU" marker: a bright ring on the floor + four chevrons, always visible under the ship
+    const you = new THREE.Group();
+    const ym = new THREE.MeshBasicMaterial({ color: hdr(0.4, 2.4, 2.8), transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    you.add(new THREE.Mesh(new THREE.RingGeometry(40, 44, 48).rotateX(-Math.PI / 2), ym));
+    for (let i = 0; i < 4; i++) { const c = new THREE.Mesh(new THREE.ConeGeometry(6, 14, 3).rotateZ(-Math.PI / 2), ym); const a = i * Math.PI / 2; c.position.set(Math.cos(a) * 54, 0, Math.sin(a) * 54); c.rotation.y = -a; you.add(c); }
+    you.position.y = -6;
+    g.add(you);
+    if (window.matchMedia && matchMedia('(pointer: coarse)').matches) g.scale.setScalar(1.35);
+    g.userData.glow = glow; g.userData.shield = shield; g.userData.you = you;
     return g;
   }
   makeHunter(ph) {
@@ -215,7 +223,8 @@ export class Renderer {
     const w = window.innerWidth, h = window.innerHeight;
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
-    this.bloom.resolution.set(w / 2, h / 2);
+    const coarseB = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    this.bloom.resolution.set(w / (coarseB ? 4 : 2), h / (coarseB ? 4 : 2));
     this.camera.aspect = w / h;
     const vf = THREE.MathUtils.degToRad(this.camera.fov / 2);
     const hf = Math.atan(Math.tan(vf) * this.camera.aspect);

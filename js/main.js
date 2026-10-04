@@ -13,12 +13,15 @@ const R = new Renderer($('c'));
 const audio = new Audio();
 const ui = new UI(R);
 
-let pop, trainer, game;
+let pop, trainer, game, warmBrains = null;
 function freshAI() {
   pop = new Population();
   trainer = new Trainer(pop);
-  trainer.start({ ...DEFAULT_MODEL }, 12); // warm-up vs a generic human
-  while (trainer.update(50));
+  if (!warmBrains) { // warm-up vs a generic human, once per page load
+    trainer.start({ ...DEFAULT_MODEL }, 12);
+    while (trainer.update(50));
+    warmBrains = pop.genomes.map(g => g.genes.slice());
+  } else pop.seed(warmBrains, 12);
   trainer.totalDuels = 0;
   if (game) { game.pop = pop; } else game = new Game(R, audio, ui, pop);
   game.model = { ...DEFAULT_MODEL };
@@ -244,7 +247,7 @@ function gameOver() {
   ].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('');
   $('ohabit').innerHTML = `What gave you away: ${insights(m)[0] || 'nothing — you were unreadable'}`;
   const cv = (game.curve || []).slice(-8);
-  for (const c of cv) c.acc = probe(c.genome, m).acc; // every wave's champion vs the FINAL model of you
+  for (const c of cv) c.acc = probe(c.genome, m, 4).acc; // every wave's champion vs the FINAL model of you
   const mx = Math.max(0.01, ...cv.map(c => c.acc));
   $('curve').innerHTML = cv.length > 1 ? `<div class="cl">EACH WAVE'S CHAMPION<br>vs YOUR FINAL SHADOW<br><b>SHOTS ON TARGET</b></div>` + cv.map(c => `<div><b>${Math.round(c.acc * 100)}%</b><i style="height:${Math.max(4, c.acc / mx * 56)}px"></i>${c.label}</div>`).join('') : '';
   $('share').textContent = '⚔ SEND YOUR HUNTERS TO A FRIEND';
@@ -292,9 +295,9 @@ function frame(now) {
   if (perf.n >= 120) { if (perf.acc / perf.n > 0.036 && !document.hidden) R.lowerQuality(); perf.acc = 0; perf.n = 0; }
   let scale = 1;
   if (state === 'play' && paused) scale = 0;
-  else if (scan) scale = 0.1;
+  else if (scan) scale = TOUCH ? 0.25 : 0.12;
   else if (game.hitstop > 0) scale = 0.08;
-  else if (game.slowmo > 0) scale = 0.3;
+  else if (game.slowmo > 0) scale = 0.45;
   const dt = real * scale;
   // slow-mo / hit-pause last REAL seconds, so controls never feel sticky
   game.slowmo = Math.max(0, game.slowmo - real); game.hitstop = Math.max(0, game.hitstop - real);

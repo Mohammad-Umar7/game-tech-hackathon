@@ -311,9 +311,8 @@ export class Game {
   killHunter(h) {
     const R = this.R;
     h.dead = true; this.hunterKills++;
-    if (!this.demo && this.state === 'wave' && !this.spawnQ.some(s => s.kind !== 'drones') && !this.shadow && this.hunters.every(o => o.dead)) { this.slowmo = 1.1; R.punch(h.x, h.y); this.ui.popup(h.x, h.y - 50, 'FINAL KILL', 'big'); }
-    R.fx.explode(h.x, h.y, h.color, 1.25); R.grid.push(h.x, h.y, 520, 230); R.shake(0.32); R.kick(0.25);
-    this.hitstop = Math.max(this.hitstop, 0.045);
+    if (!this.demo && this.state === 'wave' && !this.spawnQ.some(s => s.kind !== 'drones') && !this.shadow && this.hunters.every(o => o.dead)) { this.slowmo = 0.7; R.punch(h.x, h.y); this.ui.popup(h.x, h.y - 50, 'FINAL KILL', 'big'); }
+    R.fx.explode(h.x, h.y, h.color, 1.25); R.grid.push(h.x, h.y, 520, 230); R.shake(0.28); R.kick(0.2);
     this.audio.boom(1.2);
     this.registerKill(4);
     this.addScore(500, h.x, h.y, true);
@@ -338,7 +337,7 @@ export class Game {
       const R = this.R;
       for (let i = 0; i < 5; i++) setTimeout(() => { R.fx.explode(sh.x + (Math.random() - 0.5) * 120, sh.y + (Math.random() - 0.5) * 120, hdr(3, 0.2, 0.3), 1.4); this.audio.boom(1.4); R.shake(0.3); }, i * 110);
       setTimeout(() => { R.fx.explode(sh.x, sh.y, hdr(3, 1.4, 1.2), 3.2); R.grid.push(sh.x, sh.y, 1600, 600); R.shake(1); R.kick(1); R.warp = 0.8; this.audio.nova(); }, 600);
-      this.slowmo = 1.4; this.R.punch(sh.x, sh.y);
+      this.slowmo = 0.9; this.R.punch(sh.x, sh.y);
       this.registerKill(20);
       this.addScore(5000, sh.x, sh.y, true);
       this.drop(sh.x - 30, sh.y, 'hp'); this.drop(sh.x + 30, sh.y, 'nova');
@@ -357,7 +356,7 @@ export class Game {
     p.hp--; p.invuln = PLAYER.invuln;
     this.rec.damage++;
     R.hurt(); R.grid.push(p.x, p.y, 700, 300); R.fx.explode(p.x, p.y, C_PLAYER, 0.6);
-    this.audio.hurt(); this.slowmo = 0.35; this.combo = 0;
+    this.audio.hurt(); this.slowmo = Math.max(this.slowmo, 0.18); this.combo = 0;
     for (const b of this.eb) if (Math.hypot(b.x - p.x, b.y - p.y) < 170) b.life = 0;
     if (p.hp <= 0) {
       p.alive = false; this.state = 'dead';
@@ -374,7 +373,7 @@ export class Game {
     this.novaFx = { x: p.x, y: p.y, r: 0, max: 560, hit: new Set() };
     R.fx.ring(p.x, p.y, hdr(1.2, 2.4, 4), 560, 0.7); R.fx.ring(p.x, p.y, hdr(3, 3, 3), 400, 0.45);
     R.fx.flash(p.x, p.y, hdr(0.3, 0.6, 1.2), 700, 0.45); R.grid.push(p.x, p.y, 1800, 620);
-    R.shake(0.7); R.kick(0.8); R.warp = 0.7; this.audio.nova(); this.hitstop = 0.06;
+    R.shake(0.6); R.kick(0.6); R.warp = 0.6; this.audio.nova();
     p.invuln = Math.max(p.invuln, 0.6);
   }
   updateNova(dt) {
@@ -396,6 +395,7 @@ export class Game {
       const blink = p.invuln > 0 && !this.demo && Math.floor(t * 20) % 2 === 0;
       p.mesh.visible = !blink;
       p.mesh.userData.shield.visible = p.invuln > 0 && !this.demo;
+      const you = p.mesh.userData.you; you.visible = !this.demo; you.rotation.y = t * 1.5 + Math.atan2(p.cmd.aimy, p.cmd.aimx); you.scale.setScalar(1 + Math.sin(t * 6) * 0.06);
     }
     for (const h of this.hunters) {
       const s = h.spawnT > 0 ? 1 - h.spawnT / 0.8 : 1;
