@@ -239,6 +239,7 @@ export class Grid {
       this.vz[k] = (this.vz[k] + (this.rz[k] - this.z[k]) * kA * dt) * damp;
       this.vh[k] = (this.vh[k] - this.h[k] * kA * dt) * damp;
       this.x[k] += this.vx[k] * dt; this.z[k] += this.vz[k] * dt; this.h[k] += this.vh[k] * dt;
+      if (this.h[k] < -150) { this.h[k] = -150; this.vh[k] *= -0.3; }
     }
     // neighbour coupling makes ripples travel
     const nx = this.nx;

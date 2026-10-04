@@ -175,7 +175,9 @@ export function describeLearning(before, after, model) {
   const rn = after.range - model.prefDist;
   lines.push(`◆ Fighting range <b>${before.range}px → ${after.range}px</b> ${Math.abs(rn) < 90 ? '— right at YOUR comfort range' : rn < 0 ? '— crowding inside your comfort zone' : '— staying out of your reach'}`);
   const dd = after.dodge - before.dodge;
-  lines.push(`${dd >= 0 ? '▲' : '▼'} Dodge reflex <b>${dd >= 0 ? '+' : ''}${pct(before.dodge, after.dodge)}%</b>`);
+  if (dd >= 0.03) lines.push(`▲ Dodge reflex <b>${before.dodge.toFixed(2)} → ${after.dodge.toFixed(2)}</b> — your aim (${Math.round(model.accuracy * 100)}%) forced them to learn evasion`);
+  else if (dd <= -0.03) lines.push(`▼ Dodge reflex <b>${before.dodge.toFixed(2)} → ${after.dodge.toFixed(2)}</b> — ${model.accuracy < 0.3 ? `your ${Math.round(model.accuracy * 100)}% aim isn't worth dodging` : 'trading safety for aggression'}`);
+  else lines.push(`◆ Dodge reflex held at <b>${after.dodge.toFixed(2)}</b>`);
   lines.push(`◆ They now orbit <b>${after.counterOrbit.toUpperCase()}</b> your ${model.orbitDir > 0 ? 'counter-clockwise' : 'clockwise'} circle${after.counterOrbit === 'against' ? ' — cutting you off' : ' — shadowing you'}`);
   if (after.flinch > before.flinch + 0.05) lines.push(`▲ Now <b>sidesteps when you aim</b> at them`);
   return lines;

@@ -70,6 +70,12 @@ export class Renderer {
     this.composer.addPass(new OutputPass());
 
     this.fx = new FX(this.scene);
+    // scan reticle
+    this.reticle = new THREE.Group();
+    const rm = new THREE.MeshBasicMaterial({ color: hdr(0.5, 2.6, 3), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    this.reticle.add(new THREE.Mesh(new THREE.RingGeometry(40, 43, 48).rotateX(-Math.PI / 2), rm));
+    for (let i = 0; i < 4; i++) { const b = new THREE.Mesh(new THREE.BoxGeometry(18, 3, 4), rm); const a = i * Math.PI / 2; b.position.set(Math.cos(a) * 56, 0, Math.sin(a) * 56); b.rotation.y = -a; this.reticle.add(b); }
+    this.reticle.visible = false; this.scene.add(this.reticle);
     this.grid = new Grid(this.scene);
     this._arena(); this._stars(); this._bullets();
     this.trauma = 0; this.aberr = 0; this.damage = 0; this.warp = 0; this.time = 0;
@@ -81,7 +87,7 @@ export class Renderer {
 
   _arena() {
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(W + 40, H + 40), new THREE.MeshBasicMaterial({ color: 0x05040c }));
-    floor.rotation.x = -Math.PI / 2; floor.position.y = -6; this.scene.add(floor);
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -170; this.scene.add(floor);
     this.frameMat = new THREE.MeshBasicMaterial({ color: hdr(0.35, 0.2, 1.4) });
     const t = 5, h = 14;
     const mk = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), this.frameMat); m.position.set(x, h / 2 - 4, z); this.scene.add(m); };

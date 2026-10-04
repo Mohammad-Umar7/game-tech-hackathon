@@ -303,7 +303,7 @@ export class Game {
 
   hurtHunter(h, dmg, dx, dy) {
     if (h.dead) return;
-    h.hp -= dmg; this.R.fx.hit(h.x, h.y, h.color, -dx, -dy);
+    h.hp -= dmg; h.hitFlash = 1; this.R.fx.hit(h.x, h.y, h.color, -dx, -dy);
     if (!this.demo) { this.rec.hits++; this.audio.hit(); }
     if (h.hp <= 0) this.killHunter(h);
   }
@@ -399,8 +399,13 @@ export class Game {
       R.place(h.mesh, h.x, h.y, h.heading, 10 + (h.spawnT > 0 ? h.spawnT * 160 : 0));
       h.mesh.scale.setScalar(0.2 + 0.8 * s);
       h.mesh.rotation.z = Math.sin(t * 3 + h.x) * 0.15;
+      if (h.hitFlash > 0) { h.hitFlash = Math.max(0, h.hitFlash - 0.12); h.mesh.userData.body.material.color.copy(h.color).lerp(WHITE, h.hitFlash); } else if (h.hitFlash === 0) { h.mesh.userData.body.material.color.copy(h.color).multiplyScalar(0.25); h.hitFlash = -1; }
       h.mesh.userData.core.scale.setScalar(40 + h.fireFlash * 50 + (this.scan === h ? 50 + Math.sin(t * 20) * 16 : 0));
     }
+    if (this.scan && !this.scan.dead && this.scan.mesh) {
+      R.reticle.visible = true; R.reticle.position.set(this.scan.x - W / 2, 6, this.scan.y - H / 2);
+      R.reticle.rotation.y = t * 2; R.reticle.scale.setScalar(1 + Math.sin(t * 12) * 0.06);
+    } else R.reticle.visible = false;
     for (const d of this.drones) {
       R.place(d.mesh, d.x, d.y, d.spin, 12 + (d.spawnT > 0 ? d.spawnT * 200 : 0));
       d.mesh.rotation.x = d.spin * 0.7;
@@ -418,4 +423,5 @@ export class Game {
   }
 }
 
+const WHITE = hdr(3, 3, 3);
 const DEMO_MODEL = { ...DEFAULT_MODEL, aimError: 0.05, dodgeSkill: 0.8, fireDuty: 1, jukeRate: 1.0, orbitStrength: 0.6, speedFrac: 0.85, prefDist: 360, dashOnThreat: 0.8 };
