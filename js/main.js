@@ -175,6 +175,8 @@ function updateLab(dt) {
   ui.radar($('radar'), lab.model, lab.prev, Math.min(1, lab.t / 0.8));
   ui.arena($('arena'), d, lab.fx);
   ui.fitness($('fitness'), pop.history);
+  if (trainer.running) ui.genePool($('pool'), pop.genomes, trainer.idx, null);
+  else ui.genePool($('pool'), pop.lastGen || pop.genomes, (pop.lastGen || pop.genomes).length, pop.champion);
   $('lgen').textContent = pop.generation;
   $('lduels').textContent = trainer.totalDuels.toLocaleString('en-US');
   const last = pop.history[pop.history.length - 1];

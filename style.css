@@ -97,6 +97,7 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line); bo
 .panel::before { content: ''; position: absolute; top: 0; left: 0; width: 40px; height: 2px; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
 .panel h3 { font: 700 11px 'Orbitron', sans-serif; letter-spacing: .2em; color: var(--cyan); margin-bottom: 10px; }
 .panel canvas { display: block; width: 100%; height: auto; }
+.dimh { color: var(--dim); font: 400 10px 'Chakra Petch', monospace; letter-spacing: .08em; margin-left: 6px; }
 .live { color: var(--red); animation: pulse .8s infinite alternate; }
 @keyframes pulse { from { opacity: .35; } to { opacity: 1; } }
 #insights, #learned { list-style: none; margin-top: 8px; }

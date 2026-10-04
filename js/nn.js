@@ -86,6 +86,7 @@ export class Population {
     const avg = pop.reduce((s, g) => s + g.fitness, 0) / pop.length;
     this.history.push({ gen: this.generation, best: pop[0].fitness, avg });
     this.champion = pop[0];
+    this.lastGen = this.genomes.slice();
     this.generation++;
     const next = [];
     for (let i = 0; i < GA.elite; i++) {

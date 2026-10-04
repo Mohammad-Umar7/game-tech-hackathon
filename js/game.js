@@ -310,6 +310,7 @@ export class Game {
   killHunter(h) {
     const R = this.R;
     h.dead = true; this.hunterKills++;
+    if (!this.demo && this.state === 'wave' && !this.spawnQ.some(s => s.kind !== 'drones') && !this.shadow && this.hunters.every(o => o.dead)) { this.slowmo = 1.1; R.punch(h.x, h.y); this.ui.popup(h.x, h.y - 50, 'FINAL KILL', 'big'); }
     R.fx.explode(h.x, h.y, h.color, 1.25); R.grid.push(h.x, h.y, 520, 230); R.shake(0.32); R.kick(0.25);
     this.hitstop = Math.max(this.hitstop, 0.045);
     this.audio.boom(1.2);
@@ -336,7 +337,7 @@ export class Game {
       const R = this.R;
       for (let i = 0; i < 5; i++) setTimeout(() => { R.fx.explode(sh.x + (Math.random() - 0.5) * 120, sh.y + (Math.random() - 0.5) * 120, hdr(3, 0.2, 0.3), 1.4); this.audio.boom(1.4); R.shake(0.3); }, i * 110);
       setTimeout(() => { R.fx.explode(sh.x, sh.y, hdr(3, 1.4, 1.2), 3.2); R.grid.push(sh.x, sh.y, 1600, 600); R.shake(1); R.kick(1); R.warp = 0.8; this.audio.nova(); }, 600);
-      this.slowmo = 1.4;
+      this.slowmo = 1.4; this.R.punch(sh.x, sh.y);
       this.registerKill(20);
       this.addScore(5000, sh.x, sh.y, true);
       this.drop(sh.x - 30, sh.y, 'hp'); this.drop(sh.x + 30, sh.y, 'nova');

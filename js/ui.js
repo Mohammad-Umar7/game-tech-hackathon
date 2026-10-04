@@ -101,6 +101,22 @@ export class UI {
     line('best', '#ffd23c');
     c.font = '600 10px "Chakra Petch", monospace'; c.fillStyle = '#ffd23c'; c.fillText('BEST', 8, 12); c.fillStyle = '#ff50be'; c.fillText('AVERAGE', 44, 12);
   }
+  genePool(canvas, gs, evaluated, champ) {
+    const c = canvas.getContext('2d'), w = canvas.width, h = canvas.height;
+    c.clearRect(0, 0, w, h);
+    const cols = 11, rows = Math.ceil(gs.length / cols), cw = w / cols, ch = h / rows;
+    let max = 1; for (let i = 0; i < evaluated; i++) max = Math.max(max, gs[i].fitness);
+    gs.forEach((g, i) => {
+      const cx = (i % cols + 0.5) * cw, cy = ((i / cols | 0) + 0.5) * ch, ph = g.pheno;
+      const done = i < evaluated, f = done ? Math.max(0.08, g.fitness / max) : 0.18;
+      c.save(); c.translate(cx, cy); c.rotate(-Math.PI / 2);
+      c.strokeStyle = `hsla(${ph.hue},100%,62%,${0.25 + f * 0.75})`; c.shadowColor = c.strokeStyle; c.shadowBlur = done ? 14 * f : 0; c.lineWidth = 1.6;
+      c.beginPath();
+      for (let k = 0; k <= ph.spikes * 2; k++) { const a = k / (ph.spikes * 2) * Math.PI * 2, r = (k % 2 ? ph.inner : (k === 0 ? 1.3 : 1)) * 13; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+      c.stroke(); c.restore();
+      if (g === champ) { c.strokeStyle = '#ffd23c'; c.shadowColor = '#ffd23c'; c.shadowBlur = 10; c.lineWidth = 1.5; c.strokeRect(cx - cw / 2 + 2, cy - ch / 2 + 2, cw - 4, ch - 4); c.shadowBlur = 0; }
+    });
+  }
   // mini arena of the featured duel
   arena(canvas, duel, fx) {
     const c = canvas.getContext('2d'), w = canvas.width, h = canvas.height, sx = w / W, sy = h / H;

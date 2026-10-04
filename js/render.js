@@ -78,7 +78,7 @@ export class Renderer {
     this.reticle.visible = false; this.scene.add(this.reticle);
     this.grid = new Grid(this.scene);
     this._arena(); this._stars(); this._bullets();
-    this.trauma = 0; this.aberr = 0; this.damage = 0; this.warp = 0; this.time = 0;
+    this.trauma = 0; this.aberr = 0; this.damage = 0; this.warp = 0; this.time = 0; this.zoom = 0; this.zoomAt = new THREE.Vector3();
     this.focus = new THREE.Vector3();
     this.raycaster = new THREE.Raycaster(); this.plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -10);
     this.resize();
@@ -229,6 +229,7 @@ export class Renderer {
   }
   shake(t) { this.trauma = Math.min(1, this.trauma + t); }
   kick(a) { this.aberr = Math.min(1, this.aberr + a); }
+  punch(x, y) { this.zoom = 1; this.zoomAt.set(toX(x), 0, toZ(y)); }
   hurt() { this.damage = 1; this.kick(0.6); this.shake(0.6); }
 
   screenToWorld(sx, sy) {
@@ -264,7 +265,14 @@ export class Renderer {
       this.camBase.y + Math.sin(t * 39) * 18 * s,
       this.camBase.z + this.focus.z + Math.cos(t * 43) * 22 * s);
     this.camera.up.set(0, 1, 0);
-    this.camera.lookAt(this.look.x + this.focus.x, 0, this.look.z + this.focus.z);
+    const L = new THREE.Vector3(this.look.x + this.focus.x, 0, this.look.z + this.focus.z);
+    if (this.zoom > 0) {
+      this.zoom = Math.max(0, this.zoom - dt * 0.8);
+      const z = this.zoom, k = z * z * (3 - 2 * z) * 0.8;
+      const pz = this.zoomAt.clone().add(this.camera.position.clone().sub(L).multiplyScalar(0.5));
+      this.camera.position.lerp(pz, k); L.lerp(this.zoomAt, k);
+    }
+    this.camera.lookAt(L);
     this.camera.rotation.z += Math.sin(t * 31) * 0.02 * s;
     this.stars.rotation.y += dt * 0.006;
     const pu = this.post.uniforms;
