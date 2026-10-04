@@ -36,6 +36,7 @@ if (incoming) {
 const AUTO = new URLSearchParams(location.search).has('autodemo');
 const BOT = AUTO || new URLSearchParams(location.search).has('bot');
 if (AUTO) { document.body.classList.add('autodemo'); R.post.uniforms.uGrain.value = 0; }
+if (new URLSearchParams(location.search).has('nocap')) document.body.classList.add('nocap');
 let state = 'title', paused = false, scan = false, demoWave = 1;
 game.reset(true); game.startWave(1);
 
@@ -261,7 +262,7 @@ function caption(html) {
 }
 function autodemo(real) {
   ad.t += real;
-  const since = ad.t - ad.t0, next = () => { ad.step++; ad.t0 = ad.t; };
+  const since = ad.t - ad.t0, next = () => { (window.__marks ||= []).push({ step: ad.step, t: Date.now() / 1000 }); ad.step++; ad.t0 = ad.t; };
   switch (ad.step) {
     case 0: if (since > 4.5) { startRun(); window.__audioStart = audio.recordStart(); caption('Every enemy is a <b>neural network</b>. Every move you make is being <b>recorded</b>.'); next(); } break;
     case 1: if (since > 6 && game.hunters.some(h => h.spawnT <= 0)) { toggleScan(); caption('<b>Brain scan</b>: watch a hunter’s network fire in real time — inputs → decisions'); next(); } break;

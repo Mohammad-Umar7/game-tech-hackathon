@@ -54,6 +54,8 @@ while ((Date.now() - t0) / 1000 < MAX_S) {
   if (r?.result?.value) break;
 }
 await send('Page.stopScreencast');
+const mk = await send('Runtime.evaluate', { expression: 'JSON.stringify(window.__marks || [])', returnByValue: true });
+writeFileSync(OUT.replace(/\.mp4$/, '.marks.json'), JSON.stringify({ f0: frames[0], marks: JSON.parse(mk?.result?.value || '[]') }, null, 1));
 const au = await send('Runtime.evaluate', { expression: 'JSON.stringify({ b: window.__audioB64 || null, t: window.__audioStart || 0 })', returnByValue: true });
 const audio = JSON.parse(au?.result?.value || '{}');
 if (audio.b) { writeFileSync(join(work, 'audio.webm'), Buffer.from(audio.b, 'base64')); console.log(`

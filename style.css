@@ -167,6 +167,7 @@ body.scanning #c { filter: saturate(.55) brightness(.75) hue-rotate(-12deg); }
 #endcard { background: radial-gradient(ellipse at center, rgba(3,2,8,.82), rgba(3,2,8,.97)); z-index: 25; }
 .endurl { margin-top: 18px; font: 700 clamp(16px, 2.2vw, 26px) 'Orbitron', sans-serif; color: var(--gold); text-shadow: 0 0 16px rgba(255,210,60,.6); letter-spacing: .06em; }
 body.autodemo #c { cursor: none; }
+body.nocap #caption { display: none !important; }
 
 /* ---------- touch ---------- */
 .touchnote { display: none; margin-top: 12px; font-size: 12px; color: var(--pink); letter-spacing: .1em; }
